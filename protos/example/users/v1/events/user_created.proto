@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package example.users.v1.events;
+
+import "example/users/v1/types/user.proto";
+
+message UserCreated {
+  example.users.v1.types.User user = 1;
+}

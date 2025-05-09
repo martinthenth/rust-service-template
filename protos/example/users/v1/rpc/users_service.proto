@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package example.users.v1.rpc;
+
+import "example/users/v1/types/user.proto";
+
+service UsersService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  example.users.v1.types.User user = 1;
+}
