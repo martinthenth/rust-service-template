@@ -1,2 +1,1 @@
 # rust-service-template
-
