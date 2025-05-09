@@ -5,3 +5,9 @@ edition = "2024"
 
 [dependencies]
 base = { path = "../base" }
+prost = "0.13.5"
+tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
+tonic = "0.13.1"
+
+[build-dependencies]
+tonic-build = "*"

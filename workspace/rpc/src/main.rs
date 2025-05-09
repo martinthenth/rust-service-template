@@ -1,3 +1,6 @@
-fn main() {
-    rpc::start_server();
+use rpc::start_server;
+
+#[tokio::main]
+async fn main() {
+    start_server().await;
 }
