@@ -1,0 +1,25 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres:/var/lib/postgresql/data
+  jaeger:
+    container_name: jaeger
+    image: jaegertracing/jaeger:2.5.0
+    ports:
+      - 16686:16686
+      - 4317:4317
+      - 4318:4318
+    volumes:
+      - jaeger:/tmp
+volumes:
+  postgres:
+    driver: local
+  jaeger:
+    driver: local
