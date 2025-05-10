@@ -1,0 +1,35 @@
+version: 3
+vars:
+  DATABASE_URLS:
+    - postgres://postgres:postgres@localhost:5432/users_dev
+    - postgres://postgres:postgres@localhost:5432/users_test
+tasks:
+  install:
+    desc: Install SQLx CLI
+    cmd: command -v sqlx || cargo install sqlx-cli --no-default-features --features native-tls,postgres
+    silent: true
+  lint:
+    desc: Format and lint code
+    cmds:
+      - cargo fmt -- --check
+      - cargo clippy --tests --profile test -- -D warnings
+    dir: workspace
+    silent: true
+  migrate:
+    desc: Migrate database
+    cmds:
+      - for: { var: DATABASE_URLS, as: URL }
+        cmd: sqlx migrate run --database-url {{.URL}}
+    silent: true
+  reset:
+    desc: Reset database
+    cmds:
+      - for: { var: DATABASE_URLS, as: URL }
+        cmd: sqlx database drop --database-url {{.URL}} -y && sqlx database create --database-url {{.URL}}
+      - task: migrate
+    silent: true
+  test:
+    desc: Test code
+    cmd: cargo test --lib --bins --tests {{.CLI_ARGS}} -- --nocapture
+    dir: workspace
+    silent: true

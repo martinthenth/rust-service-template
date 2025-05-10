@@ -37,7 +37,8 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-
       - uses: arduino/setup-protoc@v3
-      - run: command -v sqlx || cargo install sqlx-cli --no-default-features --features native-tls,postgres
-      - run: cargo fmt -- --check
-      - run: cargo clippy --tests --profile test -- -D warnings
-      - run: cargo test --lib --bins --tests -- --nocapture
+      - uses: arduino/setup-task@v2
+      - run: task install
+      - run: task lint
+      - run: task reset
+      - run: task test
