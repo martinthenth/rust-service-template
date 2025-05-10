@@ -40,7 +40,7 @@ impl Default for Config {
             http_url: var("HTTP_URL").unwrap(),
             grpc_url: var("GRPC_URL").unwrap(),
             cors_origins: var("CORS_ORIGINS")
-                .unwrap()
+                .unwrap_or_default()
                 .split(',')
                 .map(String::from)
                 .collect(),
