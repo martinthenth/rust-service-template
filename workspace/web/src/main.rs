@@ -1,6 +1,6 @@
-use web::start_server;
+use web::web_server::WebServer;
 
 #[tokio::main]
 async fn main() {
-    start_server().await;
+    WebServer::start_server().await;
 }
