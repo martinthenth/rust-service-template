@@ -22,11 +22,10 @@ use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
 use tracing::info;
 
-use base::config::CONFIG;
-use base::error::Error;
-
 use crate::schema::GraphSchema;
 use crate::schema::Schema;
+use base::config::CONFIG;
+use base::error::Error;
 
 #[derive(Debug)]
 pub struct WebServer {}

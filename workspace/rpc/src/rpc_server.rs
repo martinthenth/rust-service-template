@@ -4,14 +4,13 @@ use tonic::Status;
 use tonic::transport::Server;
 use tracing::info;
 
-use base::config::CONFIG;
-use base::error::Error;
-
 use crate::rpc_server::types::User;
 use crate::rpc_server::users::GetUserRequest;
 use crate::rpc_server::users::GetUserResponse;
 use crate::rpc_server::users::users_service_server::UsersService;
 use crate::rpc_server::users::users_service_server::UsersServiceServer;
+use base::config::CONFIG;
+use base::error::Error;
 
 pub mod users {
     tonic::include_proto!("example.users.v1.rpc");
