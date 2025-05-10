@@ -1,3 +1,4 @@
+pub mod config;
 pub mod error;
 
 pub fn connect_database() {

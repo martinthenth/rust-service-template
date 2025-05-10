@@ -2,7 +2,9 @@ use tonic::Request;
 use tonic::Response;
 use tonic::Status;
 use tonic::transport::Server;
+use tracing::info;
 
+use base::config::CONFIG;
 use base::error::Error;
 
 use crate::rpc_server::types::User;
@@ -27,15 +29,20 @@ impl RpcServer {
     pub async fn start_server() -> Result<(), Error> {
         base::connect_database();
 
-        // TODO: Return application error
-        let address = "[::1]:50051".parse().unwrap();
+        let address = CONFIG
+            .grpc_url
+            .parse()
+            .map_err(|e| Error::InternalServer(format!("Failed to parse RPC URL: {e}")))?;
         let server = RpcServer::default();
+        let users_service = UsersServiceServer::new(server);
+
+        info!("Starting RPC Server at {address}");
 
         Server::builder()
-            .add_service(UsersServiceServer::new(server))
+            .add_service(users_service)
             .serve(address)
             .await
-            .map_err(|e| Error::InternalServer(format!("Failed to start server: {e}")))
+            .map_err(|e| Error::InternalServer(format!("Failed to serve RPC Server: {e}")))
     }
 }
 
