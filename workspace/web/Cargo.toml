@@ -9,6 +9,7 @@ async-graphql-axum = "7.0.16"
 axum = "0.8.4"
 axum-tracing-opentelemetry = "0.28.0"
 base = { path = "../base" }
+ctor = "0.4.2"
 init-tracing-opentelemetry = { version = "0.28.0", features = [
     "tracing_subscriber_ext",
 ] }

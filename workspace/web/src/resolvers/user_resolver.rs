@@ -20,4 +20,26 @@ impl UserResolver {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_create_user() {
+        let input = UserCreateInput {
+            first_name: "John".to_string(),
+            last_name: "Doe".to_string(),
+        };
+        let result = UserResolver::create_user(&input).await;
+
+        assert_eq!(result, Ok(None));
+    }
+
+    #[tokio::test]
+    async fn test_user() {
+        let id = Uuid::new_v4();
+
+        let result = UserResolver::user(&id).await;
+
+        assert_eq!(result, Ok(None));
+    }
+}

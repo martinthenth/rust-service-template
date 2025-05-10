@@ -1,6 +1,7 @@
 use dotenvy::from_path;
 use std::env::var;
 use std::path::Path;
+use std::path::PathBuf;
 use std::sync::LazyLock;
 
 use crate::error::Error;
@@ -17,19 +18,28 @@ pub struct Config {
 
 impl Config {
     pub fn load() -> Result<Self, Error> {
-        match var("ENV").unwrap_or_default().as_str() {
-            "prod" => from_path(Path::new(".env.prod"))
-                .map_err(|e| Error::InternalServer(format!("Failed to load .env.prod: {e}")))?,
-            // TODO: Load ENV in ctor, then default to dev
-            "dev" => from_path(Path::new(".env.dev"))
-                .map_err(|e| Error::InternalServer(format!("Failed to load .env.dev: {e}")))?,
-            _ => from_path(Path::new(".env.test"))
-                .map_err(|e| Error::InternalServer(format!("Failed to load .env.test: {e}")))?,
-        }
-        from_path(Path::new(".env"))
+        let env_file = match var("ENV").unwrap_or_default().as_str() {
+            "prod" => ".env.prod",
+            "test" => ".env.test",
+            _ => ".env.dev",
+        };
+
+        from_path(Self::find_env_file(env_file))
+            .map_err(|e| Error::InternalServer(format!("Failed to load {env_file}: {e}")))?;
+
+        from_path(Self::find_env_file(".env"))
             .map_err(|e| Error::InternalServer(format!("Failed to load base .env file: {e}")))?;
 
         Ok(Self::default())
+    }
+
+    fn find_env_file(filename: &str) -> PathBuf {
+        let current_path = Path::new(filename);
+        if current_path.exists() {
+            current_path.to_path_buf()
+        } else {
+            Path::new("..").join(filename)
+        }
     }
 }
 
