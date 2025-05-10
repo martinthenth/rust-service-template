@@ -5,3 +5,5 @@ edition = "2024"
 
 [dependencies]
 base = { path = "../base" }
+tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1.41"

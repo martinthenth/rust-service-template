@@ -5,3 +5,9 @@ edition = "2024"
 
 [dependencies]
 dotenvy = "0.15.7"
+sqlx = { version = "0.8.5", features = [
+    "postgres",
+    "runtime-tokio",
+    "tls-native-tls",
+] }
+tracing = "0.1.41"

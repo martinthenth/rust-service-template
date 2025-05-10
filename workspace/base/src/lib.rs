@@ -1,9 +1,6 @@
 pub mod config;
+pub mod database;
 pub mod error;
-
-pub fn connect_database() {
-    println!("Connecting to database...");
-}
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
