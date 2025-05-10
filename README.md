@@ -29,3 +29,7 @@ This is a Rust Service template that you can copy to implement Microservices. It
 ## Manual testing
 
 - Run `grpcurl -plaintext -import-path ./protos -proto protos/example/users/v1/rpc/users_service.proto '0.0.0.0:50051' example.users.v1.rpc.UsersService/GetUser` from the repository root
+
+## Continuous integration
+
+A basic GitHub Action Workflow is present to help you set up your own CI Runner.

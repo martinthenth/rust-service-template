@@ -29,7 +29,7 @@ impl WebServer {
             .route("/health", get(Self::health_check))
             .layer(pool_layer)
             .layer(OtelAxumLayer::default())
-            .layer(OtelInResponseLayer::default());
+            .layer(OtelInResponseLayer);
 
         info!("Starting HTTP Server at {address}");
 

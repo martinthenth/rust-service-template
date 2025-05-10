@@ -1,0 +1,43 @@
+name: Continuous Integration
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+env:
+  CARGO_TERM_COLOR: always
+jobs:
+  checks-and-tests:
+    name: Checks and Tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: workspace
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: users_test
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry/{index,cache}
+            ~/.cargo/git/db/
+            workspace/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - uses: arduino/setup-protoc@v3
+      - run: command -v sqlx || cargo install sqlx-cli --no-default-features --features native-tls,postgres
+      - run: cargo fmt -- --check
+      - run: cargo clippy --tests --profile test -- -D warnings
+      - run: cargo test --lib --bins --tests -- --nocapture
