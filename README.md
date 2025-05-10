@@ -16,6 +16,9 @@ This is a Rust Service template that you can copy to implement Microservices. It
 2. Run `asdf install` to install languages and tools
 3. Install `docker`, preferably Docker Desktop
 4. Run `docker-compose up -d` to start datastores and telemetry
+5. Run `cargo install sqlx-cli --no-default-features --features native-tls,postgres` for database migrations
+6. Run `sqlx database create --database-url postgres://postgres:postgres@localhost:5432/users_dev` for development database
+7. Run `sqlx database create --database-url postgres://postgres:postgres@localhost:5432/users_test` for test database
 
 ## How to run
 
@@ -25,4 +28,4 @@ This is a Rust Service template that you can copy to implement Microservices. It
 
 ## Manual testing
 
-- Run `grpcurl -plaintext -import-path ./protos -proto protos/example/users/v1/rpc/users.proto '[::1]:50051' example.users.v1.rpc.Users/GetUser` from the repository root
+- Run `grpcurl -plaintext -import-path ./protos -proto protos/example/users/v1/rpc/users_service.proto '0.0.0.0:50051' example.users.v1.rpc.UsersService/GetUser` from the repository root

@@ -5,7 +5,6 @@ use tonic::transport::Server;
 use tracing::info;
 
 use base::config::CONFIG;
-use base::database::Database;
 use base::error::Error;
 
 use crate::rpc_server::types::User;
@@ -28,8 +27,6 @@ pub struct RpcServer {}
 impl RpcServer {
     /// Start the server.
     pub async fn start_server() -> Result<(), Error> {
-        Database::connect_database().await?;
-
         let address = CONFIG
             .grpc_url
             .parse()

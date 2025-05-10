@@ -13,7 +13,7 @@ pub struct Config {
 }
 
 impl Config {
-    fn load_environment_variables() {
+    pub fn load() {
         match var("ENV").unwrap_or_default().as_str() {
             "prod" => from_path(Path::new(".env.prod")).expect("Failed to load .env.prod"),
             // TODO: Load ENV in ctor, then default to dev
@@ -27,8 +27,6 @@ impl Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Self::load_environment_variables();
-
         Self {
             database_url: var("DATABASE_URL").unwrap(),
             http_url: var("HTTP_URL").unwrap(),
