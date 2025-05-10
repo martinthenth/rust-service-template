@@ -3,11 +3,13 @@ use tonic::Response;
 use tonic::Status;
 use tonic::transport::Server;
 
-use types::User;
-use users::GetUserRequest;
-use users::GetUserResponse;
-use users::users_service_server::UsersService;
-use users::users_service_server::UsersServiceServer;
+use base::error::Error;
+
+use crate::rpc_server::types::User;
+use crate::rpc_server::users::GetUserRequest;
+use crate::rpc_server::users::GetUserResponse;
+use crate::rpc_server::users::users_service_server::UsersService;
+use crate::rpc_server::users::users_service_server::UsersServiceServer;
 
 pub mod users {
     tonic::include_proto!("example.users.v1.rpc");
@@ -22,7 +24,7 @@ pub struct RpcServer {}
 
 impl RpcServer {
     /// Start the server.
-    pub async fn start_server() {
+    pub async fn start_server() -> Result<(), Error> {
         base::connect_database();
 
         // TODO: Return application error
@@ -33,7 +35,7 @@ impl RpcServer {
             .add_service(UsersServiceServer::new(server))
             .serve(address)
             .await
-            .unwrap();
+            .map_err(|e| Error::InternalServer(format!("Failed to start server: {e}")))
     }
 }
 
@@ -45,7 +47,7 @@ impl UsersService for RpcServer {
     ) -> Result<Response<GetUserResponse>, Status> {
         println!("request: {:?}", request.into_inner());
 
-        Ok(tonic::Response::new(GetUserResponse {
+        Ok(Response::new(GetUserResponse {
             user: Some(User {
                 id: "1".to_string(),
                 first_name: "John".to_string(),
