@@ -6,9 +6,12 @@ use axum::response::IntoResponse;
 use axum::routing::get;
 use axum_tracing_opentelemetry::middleware::OtelAxumLayer;
 use axum_tracing_opentelemetry::middleware::OtelInResponseLayer;
+use http::header::HeaderValue;
 use serde_json::json;
 use sqlx::PgPool;
 use tokio::net::TcpListener;
+use tower_http::cors::Any;
+use tower_http::cors::CorsLayer;
 use tracing::info;
 
 use base::config::CONFIG;
@@ -23,11 +26,22 @@ impl WebServer {
         let listener = TcpListener::bind(address)
             .await
             .map_err(|e| Error::InternalServer(format!("Failed to bind HTTP Address: {e}")))?;
+        let cors_origins = CONFIG
+            .cors_origins
+            .iter()
+            .map(|s| s.parse().unwrap())
+            .collect::<Vec<HeaderValue>>();
         let pool_layer = Extension(pool);
+        let cors_layer = CorsLayer::new()
+            .allow_credentials(true)
+            .allow_headers(Any)
+            .allow_methods(Any)
+            .allow_origin(cors_origins);
         let server = Router::new()
             .fallback(Self::fallback_json)
             .route("/health", get(Self::health_check))
             .layer(pool_layer)
+            .layer(cors_layer)
             .layer(OtelAxumLayer::default())
             .layer(OtelInResponseLayer);
 

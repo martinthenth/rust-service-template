@@ -6,7 +6,8 @@ use bus::bus_server::BusServer;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    Config::load();
+    let _config = Config::load()?;
+
     BusServer::start_server().await.map_err(|e| {
         error!("{}", e);
         e

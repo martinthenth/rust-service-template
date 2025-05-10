@@ -8,9 +8,7 @@ use web::web_server::WebServer;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    Config::load();
-
-    // TODO: Do I need guard here?
+    let _config = Config::load()?;
     let _guard = tracing_subscriber_ext::init_subscribers()
         .map_err(|e| Error::InternalServer(format!("Failed to initialize Tracer: {e}")))?;
     let pool = Database::connect_database().await?;
