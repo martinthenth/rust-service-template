@@ -55,23 +55,49 @@ impl UserResolver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use base::Factory;
+    use base::users::user::User as BaseUser;
 
     #[meta::data_case]
-    async fn test_create_user() {
+    async fn test_create_user_returns_user() {
         let input = UserCreateInput {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };
-        let result = UserResolver::create_user(&mut *conn, input).await;
+        let user = UserResolver::create_user(&mut conn, input)
+            .await
+            .unwrap()
+            .unwrap();
 
-        assert_eq!(result, Ok(None));
+        assert_eq!(user.first_name, Some("John".to_string()));
+        assert_eq!(user.last_name, Some("Doe".to_string()));
     }
 
     #[meta::data_case]
-    async fn test_user() {
-        let id = Uuid::new_v4();
+    async fn test_user_returns_user() {
+        let user = BaseUser::factory().insert(&mut conn).await;
 
-        let result = UserResolver::user(&mut *conn, id).await;
+        let result = UserResolver::user(&mut conn, user.id).await;
+
+        assert_eq!(
+            result,
+            Ok(Some(User {
+                id: Some(user.id),
+                first_name: Some(user.first_name),
+                last_name: Some(user.last_name),
+                banned_at: user.banned_at,
+                created_at: Some(user.created_at),
+                updated_at: Some(user.updated_at),
+                deleted_at: user.deleted_at
+            }))
+        );
+    }
+
+    #[meta::data_case]
+    async fn test_user_does_not_exist_returns_none() {
+        let id = Uuid::now_v7();
+
+        let result = UserResolver::user(&mut conn, id).await;
 
         assert_eq!(result, Ok(None));
     }

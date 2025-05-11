@@ -3,6 +3,10 @@ name = "base"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+testing = []
+
 [dependencies]
 async-graphql = "7.0.16"
 ctor = "0.4.2"

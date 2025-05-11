@@ -1,4 +1,4 @@
-mod user;
+pub mod user;
 
 use sea_query::Expr;
 use sea_query::PostgresQueryBuilder;
@@ -38,14 +38,12 @@ impl Users {
             .and_where(Expr::col(UsersTable::Id).eq(id))
             .build_sqlx(PostgresQueryBuilder);
         let user = sqlx::query_as_with::<_, User, _>(&sql, values)
-            .fetch_one(&mut *conn)
+            .fetch_optional(&mut *conn)
             .await
             // TODO: Handle error.
             .unwrap();
 
-        println!("Select one from character: {:?}", user);
-
-        Ok(None)
+        Ok(user)
     }
 
     #[instrument]
@@ -78,6 +76,7 @@ impl Users {
             .returning_all()
             .build_sqlx(PostgresQueryBuilder);
         let user = sqlx::query_as_with::<_, User, _>(&sql, values)
+            // TODO: What about fetch_optional?
             .fetch_one(&mut *conn)
             .await
             // TODO: Handle error.
@@ -90,14 +89,15 @@ impl Users {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Factory;
 
     #[meta::data_case]
-    async fn test_create_user() {
+    async fn test_create_user_returns_user() {
         let params = UserCreateParams {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };
-        let result = Users::create_user(&mut *conn, params).await.unwrap();
+        let result = Users::create_user(&mut conn, params).await.unwrap();
 
         assert_eq!(result.first_name, "John");
         assert_eq!(result.last_name, "Doe");
@@ -107,9 +107,22 @@ mod tests {
     }
 
     #[meta::data_case]
-    async fn test_get_user_by_id() {
-        let id = Uuid::new_v4();
-        let result = Users::get_user_by_id(&mut *conn, id).await.unwrap();
+    async fn test_get_user_by_id_returns_user() {
+        let mut user = User::factory();
+        user.first_name = "Jane".to_string();
+        user.last_name = "Smith".to_string();
+        user.insert(&mut conn).await;
+
+        let result = Users::get_user_by_id(&mut conn, user.id).await.unwrap();
+
+        assert_eq!(result, Some(user));
+    }
+
+    #[meta::data_case]
+    async fn test_get_user_by_id_does_not_exist_returns_none() {
+        let id = Uuid::now_v7();
+
+        let result = Users::get_user_by_id(&mut conn, id).await.unwrap();
 
         assert_eq!(result, None);
     }
