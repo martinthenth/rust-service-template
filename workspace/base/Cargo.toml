@@ -4,8 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+async-graphql = "7.0.16"
 ctor = "0.4.2"
 dotenvy = "0.15.7"
+heck = "0.5.0"
+sea-query = "0.32.5"
+sea-query-binder = { version = "0.7.0", features = [
+    "sqlx-postgres",
+    "with-time",
+    "with-uuid",
+] }
 sqlx = { version = "0.8.5", features = [
     "postgres",
     "runtime-tokio",
@@ -15,3 +23,6 @@ time = "0.3.41"
 tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.41"
 uuid = { version = "1.16.0", features = ["v7"] }
+
+[dev-dependencies]
+meta = { path = "../meta" }

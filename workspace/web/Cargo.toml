@@ -20,3 +20,6 @@ tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
 tower-http = { version = "0.6.2", features = ["cors"] }
 tracing = "0.1.41"
 uuid = "1.16.0"
+
+[dev-dependencies]
+meta = { path = "../meta" }

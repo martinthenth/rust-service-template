@@ -1,19 +1,17 @@
+mod user;
+
+use sea_query::Expr;
+use sea_query::PostgresQueryBuilder;
+use sea_query::Query;
+use sea_query_binder::SqlxBinder;
+use sqlx::PgConnection;
 use time::OffsetDateTime;
 use tracing::instrument;
 use uuid::Uuid;
 
 use crate::error::Error;
-
-#[derive(Debug, PartialEq)]
-pub struct User {
-    pub id: Uuid,
-    pub first_name: String,
-    pub last_name: String,
-    pub banned_at: Option<OffsetDateTime>,
-    pub created_at: OffsetDateTime,
-    pub updated_at: OffsetDateTime,
-    pub deleted_at: Option<OffsetDateTime>,
-}
+use crate::users::user::User;
+use crate::users::user::UsersTable;
 
 #[derive(Debug, PartialEq)]
 pub struct UserCreateParams {
@@ -25,24 +23,67 @@ pub struct Users;
 
 impl Users {
     #[instrument]
-    pub async fn get_user_by_id(id: &Uuid) -> Result<Option<User>, Error> {
+    pub async fn get_user_by_id(conn: &mut PgConnection, id: Uuid) -> Result<Option<User>, Error> {
+        let (sql, values) = Query::select()
+            .from(UsersTable::Table)
+            .columns([
+                UsersTable::Id,
+                UsersTable::FirstName,
+                UsersTable::LastName,
+                UsersTable::BannedAt,
+                UsersTable::CreatedAt,
+                UsersTable::UpdatedAt,
+                UsersTable::DeletedAt,
+            ])
+            .and_where(Expr::col(UsersTable::Id).eq(id))
+            .build_sqlx(PostgresQueryBuilder);
+        let user = sqlx::query_as_with::<_, User, _>(&sql, values)
+            .fetch_one(&mut *conn)
+            .await
+            // TODO: Handle error.
+            .unwrap();
+
+        println!("Select one from character: {:?}", user);
+
         Ok(None)
     }
 
     #[instrument]
-    pub async fn create_user(params: &UserCreateParams) -> Result<User, Error> {
+    pub async fn create_user(
+        conn: &mut PgConnection,
+        params: UserCreateParams,
+    ) -> Result<User, Error> {
         let id = Uuid::now_v7();
         let timestamp = OffsetDateTime::now_utc();
+        let (sql, values) = Query::insert()
+            .into_table(UsersTable::Table)
+            .columns([
+                UsersTable::Id,
+                UsersTable::FirstName,
+                UsersTable::LastName,
+                UsersTable::BannedAt,
+                UsersTable::CreatedAt,
+                UsersTable::UpdatedAt,
+                UsersTable::DeletedAt,
+            ])
+            .values_panic([
+                id.into(),
+                params.first_name.into(),
+                params.last_name.into(),
+                None::<OffsetDateTime>.into(),
+                timestamp.into(),
+                timestamp.into(),
+                None::<OffsetDateTime>.into(),
+            ])
+            .returning_all()
+            .build_sqlx(PostgresQueryBuilder);
+        let user = sqlx::query_as_with::<_, User, _>(&sql, values)
+            .fetch_one(&mut *conn)
+            .await
+            // TODO: Handle error.
+            .unwrap();
 
-        Ok(User {
-            id,
-            first_name: params.first_name.clone(),
-            last_name: params.last_name.clone(),
-            banned_at: None,
-            created_at: timestamp,
-            updated_at: timestamp,
-            deleted_at: None,
-        })
+        Ok(user)
     }
 }
 
@@ -50,13 +91,13 @@ impl Users {
 mod tests {
     use super::*;
 
-    #[tokio::test]
+    #[meta::data_case]
     async fn test_create_user() {
         let params = UserCreateParams {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };
-        let result = Users::create_user(&params).await.unwrap();
+        let result = Users::create_user(&mut *conn, params).await.unwrap();
 
         assert_eq!(result.first_name, "John");
         assert_eq!(result.last_name, "Doe");
@@ -65,10 +106,10 @@ mod tests {
         assert_eq!(result.deleted_at, None);
     }
 
-    #[tokio::test]
+    #[meta::data_case]
     async fn test_get_user_by_id() {
         let id = Uuid::new_v4();
-        let result = Users::get_user_by_id(&id).await.unwrap();
+        let result = Users::get_user_by_id(&mut *conn, id).await.unwrap();
 
         assert_eq!(result, None);
     }

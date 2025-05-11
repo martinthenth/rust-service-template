@@ -1,4 +1,5 @@
 use async_graphql::Result;
+use sqlx::PgConnection;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -10,13 +11,16 @@ pub struct UserResolver;
 
 impl UserResolver {
     #[instrument]
-    pub async fn create_user(input: &UserCreateInput) -> Result<Option<User>> {
+    pub async fn create_user(
+        conn: &mut PgConnection,
+        input: UserCreateInput,
+    ) -> Result<Option<User>> {
         let params = UserCreateParams {
-            first_name: input.first_name.clone(),
-            last_name: input.last_name.clone(),
+            first_name: input.first_name,
+            last_name: input.last_name,
         };
 
-        match Users::create_user(&params).await {
+        match Users::create_user(conn, params).await {
             Ok(user) => Ok(Some(User {
                 id: Some(user.id),
                 first_name: Some(user.first_name),
@@ -31,8 +35,8 @@ impl UserResolver {
     }
 
     #[instrument]
-    pub async fn user(id: &Uuid) -> Result<Option<User>> {
-        match Users::get_user_by_id(id).await {
+    pub async fn user(conn: &mut PgConnection, id: Uuid) -> Result<Option<User>> {
+        match Users::get_user_by_id(conn, id).await {
             Ok(Some(user)) => Ok(Some(User {
                 id: Some(user.id),
                 first_name: Some(user.first_name),
@@ -52,22 +56,22 @@ impl UserResolver {
 mod tests {
     use super::*;
 
-    #[tokio::test]
+    #[meta::data_case]
     async fn test_create_user() {
         let input = UserCreateInput {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };
-        let result = UserResolver::create_user(&input).await;
+        let result = UserResolver::create_user(&mut *conn, input).await;
 
         assert_eq!(result, Ok(None));
     }
 
-    #[tokio::test]
+    #[meta::data_case]
     async fn test_user() {
         let id = Uuid::new_v4();
 
-        let result = UserResolver::user(&id).await;
+        let result = UserResolver::user(&mut *conn, id).await;
 
         assert_eq!(result, Ok(None));
     }
