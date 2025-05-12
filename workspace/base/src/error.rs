@@ -9,7 +9,7 @@ pub enum Error {
     Unauthorized,
     Forbidden,
     NotFound,
-    Conflict,
+    Conflict(String),
     Validation(BTreeMap<String, String>),
     InternalServer(String),
     NotImplemented,
@@ -29,7 +29,7 @@ impl Error {
             Error::Unauthorized => async_graphql::Error::new("UNAUTHORIZED"),
             Error::Forbidden => async_graphql::Error::new("FORBIDDEN"),
             Error::NotFound => async_graphql::Error::new("NOT_FOUND"),
-            Error::Conflict => async_graphql::Error::new("CONFLICT"),
+            Error::Conflict(_) => async_graphql::Error::new("CONFLICT"),
             Error::Validation(errors) => {
                 async_graphql::Error::new("VALIDATION").extend_with(|_, e| {
                     for (key, value) in errors {
@@ -39,6 +39,18 @@ impl Error {
             }
             Error::InternalServer(_) => async_graphql::Error::new("INTERNAL_SERVER"),
             Error::NotImplemented => async_graphql::Error::new("NOT_IMPLEMENTED"),
+        }
+    }
+}
+
+impl From<sqlx::Error> for Error {
+    fn from(error: sqlx::Error) -> Self {
+        match error {
+            sqlx::Error::RowNotFound => Error::NotFound,
+            sqlx::Error::Database(db_error) if db_error.is_unique_violation() => {
+                Error::Conflict(db_error.to_string())
+            }
+            _ => Error::InternalServer(error.to_string()),
         }
     }
 }

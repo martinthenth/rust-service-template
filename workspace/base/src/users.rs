@@ -39,9 +39,7 @@ impl Users {
             .build_sqlx(PostgresQueryBuilder);
         let user = sqlx::query_as_with::<_, User, _>(&sql, values)
             .fetch_optional(&mut *conn)
-            .await
-            // TODO: Handle error.
-            .unwrap();
+            .await?;
 
         Ok(user)
     }
@@ -76,11 +74,8 @@ impl Users {
             .returning_all()
             .build_sqlx(PostgresQueryBuilder);
         let user = sqlx::query_as_with::<_, User, _>(&sql, values)
-            // TODO: What about fetch_optional?
             .fetch_one(&mut *conn)
-            .await
-            // TODO: Handle error.
-            .unwrap();
+            .await?;
 
         Ok(user)
     }
