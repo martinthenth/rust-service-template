@@ -1,4 +1,4 @@
 mod resolvers;
 mod schema;
+pub mod server;
 mod test;
-pub mod web_server;

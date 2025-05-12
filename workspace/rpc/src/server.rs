@@ -1,14 +1,14 @@
 use tonic::Request;
 use tonic::Response;
 use tonic::Status;
-use tonic::transport::Server;
+use tonic::transport::Server as TonicServer;
 use tracing::info;
 
-use crate::rpc_server::types::User;
-use crate::rpc_server::users::GetUserRequest;
-use crate::rpc_server::users::GetUserResponse;
-use crate::rpc_server::users::users_service_server::UsersService;
-use crate::rpc_server::users::users_service_server::UsersServiceServer;
+use crate::server::types::User;
+use crate::server::users::GetUserRequest;
+use crate::server::users::GetUserResponse;
+use crate::server::users::users_service_server::UsersService;
+use crate::server::users::users_service_server::UsersServiceServer;
 use base::config::CONFIG;
 use base::error::Error;
 
@@ -21,21 +21,21 @@ pub mod types {
 }
 
 #[derive(Debug, Default)]
-pub struct RpcServer {}
+pub struct Server {}
 
-impl RpcServer {
+impl Server {
     /// Start the server.
     pub async fn start_server() -> Result<(), Error> {
         let address = CONFIG
             .grpc_url
             .parse()
             .map_err(|e| Error::InternalServer(format!("Failed to parse RPC URL: {e}")))?;
-        let server = RpcServer::default();
+        let server = Server::default();
         let users_service = UsersServiceServer::new(server);
 
         info!("Starting RPC Server at {address}");
 
-        Server::builder()
+        TonicServer::builder()
             .add_service(users_service)
             .serve(address)
             .await
@@ -44,7 +44,7 @@ impl RpcServer {
 }
 
 #[tonic::async_trait]
-impl UsersService for RpcServer {
+impl UsersService for Server {
     async fn get_user(
         &self,
         request: Request<GetUserRequest>,

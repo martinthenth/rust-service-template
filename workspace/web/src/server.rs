@@ -28,9 +28,9 @@ use base::config::CONFIG;
 use base::error::Error;
 
 #[derive(Debug)]
-pub struct WebServer {}
+pub struct Server {}
 
-impl WebServer {
+impl Server {
     pub async fn start_server(pool: PgPool) -> Result<(), Error> {
         let address = &CONFIG.http_url;
         let listener = TcpListener::bind(address)
@@ -64,10 +64,11 @@ impl WebServer {
             .allow_origin(cors_origins);
         let pool_layer = Extension(pool);
         let server = Router::new()
-            .fallback(Self::fallback_json)
             .route("/", get(Self::graphiql_html))
             .route("/graph", post(Self::graphql_json))
             .route("/health", get(Self::health_check))
+            // TODO: Fallback URLs are not showing up in traces
+            .fallback(Self::fallback_json)
             .with_state(schema)
             .layer(cors_layer)
             .layer(pool_layer)

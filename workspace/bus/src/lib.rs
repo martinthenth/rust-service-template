@@ -1,2 +1,2 @@
-pub mod bus_server;
+pub mod server;
 mod test;

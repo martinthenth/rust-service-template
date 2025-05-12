@@ -1,4 +1,3 @@
-use sqlx::ConnectOptions;
 use sqlx::PgPool;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::postgres::PgPoolOptions;
@@ -14,9 +13,7 @@ impl Database {
     pub async fn connect_database() -> Result<PgPool, Error> {
         let database_url = &CONFIG.database_url;
         let options = PgConnectOptions::from_str(database_url)
-            .map_err(|e| Error::InternalServer(format!("Failed to parse Database URL: {e}")))?
-            // TODO: Is this necessary?
-            .log_statements(tracing::log::LevelFilter::Debug);
+            .map_err(|e| Error::InternalServer(format!("Failed to parse Database URL: {e}")))?;
 
         PgPoolOptions::new()
             .max_connections(5)
