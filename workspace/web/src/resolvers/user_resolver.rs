@@ -1,18 +1,19 @@
 use async_graphql::Result;
-use sqlx::PgConnection;
 use tracing::instrument;
 use uuid::Uuid;
 
 use crate::schema::User;
 use crate::schema::UserCreateInput;
+use base::database::DbExecutor;
 use base::users::UserCreateParams;
 use base::users::Users;
+
 pub struct UserResolver;
 
 impl UserResolver {
-    #[instrument]
+    #[instrument(skip(db))]
     pub async fn create_user(
-        conn: &mut PgConnection,
+        db: impl DbExecutor<'_>,
         input: UserCreateInput,
     ) -> Result<Option<User>> {
         let params = UserCreateParams {
@@ -20,7 +21,7 @@ impl UserResolver {
             last_name: input.last_name,
         };
 
-        match Users::create_user(conn, params).await {
+        match Users::create_user(db, params).await {
             Ok(user) => Ok(Some(User {
                 id: Some(user.id),
                 first_name: Some(user.first_name),
@@ -34,9 +35,9 @@ impl UserResolver {
         }
     }
 
-    #[instrument]
-    pub async fn user(conn: &mut PgConnection, id: Uuid) -> Result<Option<User>> {
-        match Users::get_user_by_id(conn, id).await {
+    // #[instrument]
+    pub async fn user(db: impl DbExecutor<'_>, id: Uuid) -> Result<Option<User>> {
+        match Users::get_user_by_id(db, id).await {
             Ok(Some(user)) => Ok(Some(User {
                 id: Some(user.id),
                 first_name: Some(user.first_name),
@@ -64,7 +65,7 @@ mod tests {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };
-        let user = UserResolver::create_user(&mut conn, input)
+        let user = UserResolver::create_user(&mut *conn, input)
             .await
             .unwrap()
             .unwrap();
@@ -75,9 +76,9 @@ mod tests {
 
     #[meta::data_case]
     async fn test_user_returns_user() {
-        let user = BaseUser::factory().insert(&mut conn).await;
+        let user = BaseUser::factory().insert(&mut *conn).await;
 
-        let result = UserResolver::user(&mut conn, user.id).await;
+        let result = UserResolver::user(&mut *conn, user.id).await;
 
         assert_eq!(
             result,
@@ -97,7 +98,7 @@ mod tests {
     async fn test_user_does_not_exist_returns_none() {
         let id = Uuid::now_v7();
 
-        let result = UserResolver::user(&mut conn, id).await;
+        let result = UserResolver::user(&mut *conn, id).await;
 
         assert_eq!(result, Ok(None));
     }

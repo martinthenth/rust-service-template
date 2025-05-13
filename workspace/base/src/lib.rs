@@ -6,7 +6,7 @@ pub mod outbox;
 mod test;
 pub mod users;
 
-use sqlx::PgConnection;
+use crate::database::DbExecutor;
 
 #[allow(async_fn_in_trait)]
 pub trait Factory {
@@ -14,5 +14,5 @@ pub trait Factory {
     fn factory() -> Self;
 
     #[cfg(feature = "testing")]
-    async fn insert(&self, conn: &mut PgConnection) -> Self;
+    async fn insert(&self, db: impl DbExecutor<'_>) -> Self;
 }

@@ -1,10 +1,16 @@
+use sqlx::Acquire;
 use sqlx::PgPool;
+use sqlx::Postgres;
 use sqlx::postgres::PgConnectOptions;
 use sqlx::postgres::PgPoolOptions;
 use std::str::FromStr;
 
 use crate::config::CONFIG;
 use crate::error::Error;
+
+/// A trait for database executors.
+pub trait DbExecutor<'a>: Acquire<'a, Database = Postgres> {}
+impl<'a, T: Acquire<'a, Database = Postgres>> DbExecutor<'a> for T {}
 
 pub struct Database {}
 

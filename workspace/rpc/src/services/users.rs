@@ -17,15 +17,10 @@ impl UsersService for Server {
         &self,
         request: Request<GetUserRequest>,
     ) -> Result<Response<GetUserResponse>, Status> {
-        let mut conn = self
-            .pool
-            .acquire()
-            .await
-            .map_err(|_| Status::unavailable("Failed to acquire database connection"))?;
         let params = request.into_inner();
         let id =
             Uuid::parse_str(&params.id).map_err(|_| Status::invalid_argument("Invalid user id"))?;
-        let user = Users::get_user_by_id(&mut conn, id)
+        let user = Users::get_user_by_id(&self.pool, id)
             .await
             .map_err(|_| Status::internal("Unknown error"))?
             .ok_or_else(|| Status::not_found("User not found"))?;
@@ -47,12 +42,12 @@ impl UsersService for Server {
 #[cfg(test)]
 mod tests {
     // use super::*;
-    use base::Factory;
-    use base::users::user::User;
+    // use base::Factory;
+    // use base::users::user::User;
 
     #[meta::data_case]
     async fn test_get_user_returns_user() {
-        let user = User::factory().insert(&mut conn).await;
+        // let user = User::factory().insert(&mut conn).await;
         // let server = Server::new(conn);
 
         // let request = Request::new(GetUserRequest {

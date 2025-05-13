@@ -3,11 +3,11 @@ use sea_query::PostgresQueryBuilder;
 use sea_query::Query;
 use sea_query_binder::SqlxBinder;
 use sqlx::FromRow;
-use sqlx::PgConnection;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
 use crate::Factory;
+use crate::database::DbExecutor;
 
 #[derive(Debug, FromRow, PartialEq)]
 pub struct User {
@@ -68,7 +68,8 @@ impl Factory for User {
     }
 
     #[cfg(feature = "testing")]
-    async fn insert(&self, conn: &mut PgConnection) -> Self {
+    async fn insert(&self, db: impl DbExecutor<'_>) -> Self {
+        let mut conn = db.acquire().await.unwrap();
         let (sql, values) = Query::insert()
             .into_table(UsersTable::Table)
             .columns([
