@@ -7,9 +7,14 @@ edition = "2024"
 base = { path = "../base" }
 ctor = "0.4.2"
 prost = "0.13.5"
+sqlx = "0.8.5"
 tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
 tonic = "0.13.1"
 tracing = "0.1.41"
+uuid = "1.16.0"
 
 [build-dependencies]
 tonic-build = "*"
+
+[dev-dependencies]
+meta = { path = "../meta" }

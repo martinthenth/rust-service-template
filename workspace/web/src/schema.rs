@@ -25,6 +25,7 @@ impl Schema {
             .finish()
     }
 
+    /// Get a database connection from the context.
     async fn get_conn(ctx: &Context<'_>) -> Result<PoolConnection<Postgres>> {
         ctx.data::<PgPool>()
             .map_err(|e| {
