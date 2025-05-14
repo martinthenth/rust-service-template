@@ -1,8 +1,8 @@
 pub mod config;
 pub mod database;
 pub mod error;
-pub mod events;
-pub mod outbox;
+pub mod messages;
+pub mod outboxes;
 mod test;
 pub mod users;
 

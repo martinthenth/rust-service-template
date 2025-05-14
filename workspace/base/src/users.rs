@@ -37,7 +37,7 @@ impl Users {
             ])
             .and_where(Expr::col(UsersTable::Id).eq(id))
             .build_sqlx(PostgresQueryBuilder);
-        let user = sqlx::query_as_with::<_, User, _>(&sql, values.clone())
+        let user = sqlx::query_as_with::<_, User, _>(&sql, values)
             .fetch_optional(db)
             .await?;
 
@@ -99,6 +99,20 @@ mod tests {
         assert_eq!(result.banned_at, None);
         assert_eq!(result.created_at, result.updated_at);
         assert_eq!(result.deleted_at, None);
+    }
+
+    #[meta::data_case]
+    async fn test_create_user_creates_event() {
+        let params = CreateUserParams {
+            first_name: "John".to_string(),
+            last_name: "Doe".to_string(),
+        };
+        let result = Users::create_user(&mut *conn, params).await.unwrap();
+
+        // TODO: Query the outbox table.
+        println!("result: {:?}", result);
+
+        assert_eq!(true, false);
     }
 
     #[meta::data_case]
