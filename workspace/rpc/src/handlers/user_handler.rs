@@ -39,7 +39,7 @@ impl UserHandler {
 mod tests {
     use super::*;
     use base::Factory;
-    use base::users::user::User as BaseUser;
+    use base::user::User as BaseUser;
 
     #[meta::data_case]
     async fn test_get_user_returns_user() {

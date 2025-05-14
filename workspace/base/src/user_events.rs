@@ -6,9 +6,9 @@ use crate::outbox::Outbox;
 use crate::outbox_type::OutboxType;
 use crate::outboxes::CreateOutboxParams;
 use crate::outboxes::Outboxes;
+use crate::user::User;
 use crate::users::events::UserCreated;
 use crate::users::types::User as ProtoUser;
-use crate::users::user::User;
 
 pub struct UserEvents;
 

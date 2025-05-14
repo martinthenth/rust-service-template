@@ -1,5 +1,3 @@
-pub mod user;
-
 use sea_query::Expr;
 use sea_query::PostgresQueryBuilder;
 use sea_query::Query;
@@ -10,9 +8,9 @@ use uuid::Uuid;
 
 use crate::database::DbExecutor;
 use crate::error::Error;
+use crate::user::User;
+use crate::user::UsersTable;
 use crate::user_events::UserEvents;
-use crate::users::user::User;
-use crate::users::user::UsersTable;
 
 pub mod events {
     include!(concat!(env!("OUT_DIR"), "/example.users.v1.events.rs"));
@@ -102,6 +100,24 @@ mod tests {
     use crate::outboxes::Outboxes;
 
     #[meta::data_case]
+    async fn test_get_user_by_id_returns_user() {
+        let user = User::insert(&mut *conn, User::factory()).await;
+
+        let result = Users::get_user_by_id(&mut *conn, user.id).await.unwrap();
+
+        assert_eq!(result, Some(user));
+    }
+
+    #[meta::data_case]
+    async fn test_get_user_by_id_does_not_exist_returns_none() {
+        let id = Uuid::now_v7();
+
+        let result = Users::get_user_by_id(&mut *conn, id).await.unwrap();
+
+        assert_eq!(result, None);
+    }
+
+    #[meta::data_case]
     async fn test_create_user_returns_user() {
         let params = CreateUserParams {
             first_name: "John".to_string(),
@@ -127,23 +143,5 @@ mod tests {
 
         assert_eq!(outboxes.len(), 1);
         assert_eq!(outboxes[0].r#type, OutboxType::UserCreated);
-    }
-
-    #[meta::data_case]
-    async fn test_get_user_by_id_returns_user() {
-        let user = User::insert(&mut *conn, User::factory()).await;
-
-        let result = Users::get_user_by_id(&mut *conn, user.id).await.unwrap();
-
-        assert_eq!(result, Some(user));
-    }
-
-    #[meta::data_case]
-    async fn test_get_user_by_id_does_not_exist_returns_none() {
-        let id = Uuid::now_v7();
-
-        let result = Users::get_user_by_id(&mut *conn, id).await.unwrap();
-
-        assert_eq!(result, None);
     }
 }

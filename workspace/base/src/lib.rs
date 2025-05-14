@@ -1,12 +1,15 @@
 pub mod config;
 pub mod database;
 pub mod error;
+mod message;
+mod message_type;
 mod messages;
 mod outbox;
 mod outbox_type;
 mod outboxes;
 mod test;
-pub mod user_events;
+pub mod user;
+mod user_events;
 pub mod users;
 
 use crate::database::DbExecutor;
