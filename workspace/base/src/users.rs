@@ -19,13 +19,11 @@ pub struct UserCreateParams {
     pub last_name: String,
 }
 
-// TODO: Maybe an OOP pattern where the database pool is store in the struct. Must also support storing transaction
 pub struct Users {}
 
 impl Users {
     #[instrument(skip(db))]
     pub async fn get_user_by_id(db: impl DbExecutor<'_>, id: Uuid) -> Result<Option<User>, Error> {
-        let mut conn = db.acquire().await?;
         let (sql, values) = Query::select()
             .from(UsersTable::Table)
             .columns([
@@ -40,7 +38,7 @@ impl Users {
             .and_where(Expr::col(UsersTable::Id).eq(id))
             .build_sqlx(PostgresQueryBuilder);
         let user = sqlx::query_as_with::<_, User, _>(&sql, values.clone())
-            .fetch_optional(&mut *conn)
+            .fetch_optional(db)
             .await?;
 
         Ok(user)
@@ -51,7 +49,6 @@ impl Users {
         db: impl DbExecutor<'_>,
         params: UserCreateParams,
     ) -> Result<User, Error> {
-        let mut conn = db.acquire().await?;
         let id = Uuid::now_v7();
         let timestamp = OffsetDateTime::now_utc();
         let (sql, values) = Query::insert()
@@ -77,7 +74,7 @@ impl Users {
             .returning_all()
             .build_sqlx(PostgresQueryBuilder);
         let user = sqlx::query_as_with::<_, User, _>(&sql, values)
-            .fetch_one(&mut *conn)
+            .fetch_one(db)
             .await?;
 
         Ok(user)
@@ -106,12 +103,9 @@ mod tests {
 
     #[meta::data_case]
     async fn test_get_user_by_id_returns_user() {
-        let mut user = User::factory();
-        user.first_name = "Jane".to_string();
-        user.last_name = "Smith".to_string();
-        user.insert(&mut *conn).await;
+        let user = User::insert(&mut *conn, User::factory()).await;
 
-        let result = Users::get_user_by_id(&mut conn, user.id).await.unwrap();
+        let result = Users::get_user_by_id(&mut *conn, user.id).await.unwrap();
 
         assert_eq!(result, Some(user));
     }
@@ -120,7 +114,7 @@ mod tests {
     async fn test_get_user_by_id_does_not_exist_returns_none() {
         let id = Uuid::now_v7();
 
-        let result = Users::get_user_by_id(&mut conn, id).await.unwrap();
+        let result = Users::get_user_by_id(&mut *conn, id).await.unwrap();
 
         assert_eq!(result, None);
     }

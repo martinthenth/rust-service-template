@@ -14,5 +14,5 @@ pub trait Factory {
     fn factory() -> Self;
 
     #[cfg(feature = "testing")]
-    async fn insert(&self, db: impl DbExecutor<'_>) -> Self;
+    async fn insert(db: impl DbExecutor<'_>, s: Self) -> Self;
 }

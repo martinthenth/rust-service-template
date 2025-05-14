@@ -35,7 +35,7 @@ impl UserResolver {
         }
     }
 
-    // #[instrument]
+    #[instrument(skip(db))]
     pub async fn user(db: impl DbExecutor<'_>, id: Uuid) -> Result<Option<User>> {
         match Users::get_user_by_id(db, id).await {
             Ok(Some(user)) => Ok(Some(User {
@@ -76,7 +76,7 @@ mod tests {
 
     #[meta::data_case]
     async fn test_user_returns_user() {
-        let user = BaseUser::factory().insert(&mut *conn).await;
+        let user = BaseUser::insert(&mut *conn, BaseUser::factory()).await;
 
         let result = UserResolver::user(&mut *conn, user.id).await;
 

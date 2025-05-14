@@ -68,8 +68,7 @@ impl Factory for User {
     }
 
     #[cfg(feature = "testing")]
-    async fn insert(&self, db: impl DbExecutor<'_>) -> Self {
-        let mut conn = db.acquire().await.unwrap();
+    async fn insert(db: impl DbExecutor<'_>, user: Self) -> Self {
         let (sql, values) = Query::insert()
             .into_table(UsersTable::Table)
             .columns([
@@ -82,19 +81,19 @@ impl Factory for User {
                 UsersTable::DeletedAt,
             ])
             .values_panic([
-                self.id.into(),
-                self.first_name.clone().into(),
-                self.last_name.clone().into(),
+                user.id.into(),
+                user.first_name.clone().into(),
+                user.last_name.clone().into(),
                 None::<OffsetDateTime>.into(),
-                self.created_at.into(),
-                self.updated_at.into(),
+                user.created_at.into(),
+                user.updated_at.into(),
                 None::<OffsetDateTime>.into(),
             ])
             .returning_all()
             .build_sqlx(PostgresQueryBuilder);
 
         sqlx::query_as_with::<_, User, _>(&sql, values)
-            .fetch_one(&mut *conn)
+            .fetch_one(db)
             .await
             .unwrap()
     }
