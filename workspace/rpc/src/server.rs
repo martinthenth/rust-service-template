@@ -6,20 +6,12 @@ use tonic::transport::Server as TonicServer;
 use tracing::info;
 
 use crate::handlers::user_handler::UserHandler;
-use crate::server::users::GetUserRequest;
-use crate::server::users::GetUserResponse;
-use crate::server::users::users_server::Users;
-pub use crate::server::users::users_server::UsersServer;
+use crate::users::rpc::GetUserRequest;
+use crate::users::rpc::GetUserResponse;
+use crate::users::rpc::users_server::Users;
+pub use crate::users::rpc::users_server::UsersServer;
 use base::config::CONFIG;
 use base::error::Error;
-
-pub mod users {
-    tonic::include_proto!("example.users.v1.rpc");
-}
-
-pub mod types {
-    tonic::include_proto!("example.users.v1.types");
-}
 
 pub struct Server {
     pub pool: PgPool,

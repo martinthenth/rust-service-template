@@ -3,7 +3,7 @@ use sqlx::prelude::FromRow;
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-use crate::outboxes::outbox_type::OutboxType;
+use crate::outbox_type::OutboxType;
 
 #[derive(Debug, FromRow, PartialEq)]
 pub struct Outbox {

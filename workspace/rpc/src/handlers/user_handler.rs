@@ -1,10 +1,10 @@
 use tonic::Status;
 use uuid::Uuid;
 
-use crate::server::types::User;
-use crate::server::users::GetUserRequest;
-use crate::server::users::GetUserResponse;
-pub use crate::server::users::users_server::UsersServer;
+use crate::users::rpc::GetUserRequest;
+use crate::users::rpc::GetUserResponse;
+pub use crate::users::rpc::users_server::UsersServer;
+use crate::users::types::User;
 use base::database::DbExecutor;
 use base::users::Users;
 
@@ -25,10 +25,10 @@ impl UserHandler {
             id: u.id.to_string(),
             first_name: u.first_name,
             last_name: u.last_name,
-            banned_at: u.banned_at.map_or("".to_string(), |s| s.to_string()),
+            banned_at: u.banned_at.map_or("".to_string(), |dt| dt.to_string()),
             created_at: u.created_at.to_string(),
             updated_at: u.updated_at.to_string(),
-            deleted_at: u.deleted_at.map_or("".to_string(), |s| s.to_string()),
+            deleted_at: u.deleted_at.map_or("".to_string(), |dt| dt.to_string()),
         });
 
         Ok(GetUserResponse { user: response })

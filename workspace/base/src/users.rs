@@ -10,8 +10,17 @@ use uuid::Uuid;
 
 use crate::database::DbExecutor;
 use crate::error::Error;
+use crate::user_events::UserEvents;
 use crate::users::user::User;
 use crate::users::user::UsersTable;
+
+pub mod events {
+    include!(concat!(env!("OUT_DIR"), "/example.users.v1.events.rs"));
+}
+
+pub mod types {
+    include!(concat!(env!("OUT_DIR"), "/example.users.v1.types.rs"));
+}
 
 #[derive(Debug)]
 pub struct CreateUserParams {
@@ -19,6 +28,7 @@ pub struct CreateUserParams {
     pub last_name: String,
 }
 
+// TODO: Functional approach vs object oriented approach.
 pub struct Users;
 
 impl Users {
@@ -49,6 +59,7 @@ impl Users {
         db: impl DbExecutor<'_>,
         params: CreateUserParams,
     ) -> Result<User, Error> {
+        let mut tx = db.begin().await?;
         let id = Uuid::now_v7();
         let timestamp = OffsetDateTime::now_utc();
         let (sql, values) = Query::insert()
@@ -74,8 +85,10 @@ impl Users {
             .returning_all()
             .build_sqlx(PostgresQueryBuilder);
         let user = sqlx::query_as_with::<_, User, _>(&sql, values)
-            .fetch_one(db)
+            .fetch_one(&mut *tx)
             .await?;
+        let _outbox = UserEvents::create_user_created_event(&mut *tx, &user).await?;
+        tx.commit().await?;
 
         Ok(user)
     }
@@ -85,6 +98,8 @@ impl Users {
 mod tests {
     use super::*;
     use crate::Factory;
+    use crate::outbox_type::OutboxType;
+    use crate::outboxes::Outboxes;
 
     #[meta::data_case]
     async fn test_create_user_returns_user() {
@@ -107,12 +122,11 @@ mod tests {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };
-        let result = Users::create_user(&mut *conn, params).await.unwrap();
+        let _result = Users::create_user(&mut *conn, params).await.unwrap();
+        let outboxes = Outboxes::list_outboxes(&mut *conn).await.unwrap();
 
-        // TODO: Query the outbox table.
-        println!("result: {:?}", result);
-
-        assert_eq!(true, false);
+        assert_eq!(outboxes.len(), 1);
+        assert_eq!(outboxes[0].r#type, OutboxType::UserCreated);
     }
 
     #[meta::data_case]

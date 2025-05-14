@@ -1,6 +1,3 @@
-mod outbox;
-mod outbox_type;
-
 use sea_query::PostgresQueryBuilder;
 use sea_query::Query;
 use sea_query_binder::SqlxBinder;
@@ -10,9 +7,9 @@ use uuid::Uuid;
 
 use crate::database::DbExecutor;
 use crate::error::Error;
-use crate::outboxes::outbox::Outbox;
-use crate::outboxes::outbox::OutboxTable;
-use crate::outboxes::outbox_type::OutboxType;
+use crate::outbox::Outbox;
+use crate::outbox::OutboxTable;
+use crate::outbox_type::OutboxType;
 
 #[derive(Debug)]
 pub struct CreateOutboxParams {
@@ -29,7 +26,6 @@ impl Outboxes {
         db: impl DbExecutor<'_>,
         params: CreateOutboxParams,
     ) -> Result<Outbox, Error> {
-        // TODO: Payload to BYTEA via protobuf
         let id = Uuid::now_v7();
         let timestamp = OffsetDateTime::now_utc();
         let (sql, values) = Query::insert()
@@ -53,6 +49,24 @@ impl Outboxes {
             .await?;
 
         Ok(outbox)
+    }
+
+    #[cfg(test)]
+    pub async fn list_outboxes(db: impl DbExecutor<'_>) -> Result<Vec<Outbox>, Error> {
+        let (sql, values) = Query::select()
+            .from(OutboxTable::Table)
+            .columns([
+                OutboxTable::Id,
+                OutboxTable::Type,
+                OutboxTable::Payload,
+                OutboxTable::Timestamp,
+            ])
+            .build_sqlx(PostgresQueryBuilder);
+        let outboxes = sqlx::query_as_with::<_, Outbox, _>(&sql, values)
+            .fetch_all(db)
+            .await?;
+
+        Ok(outboxes)
     }
 }
 
