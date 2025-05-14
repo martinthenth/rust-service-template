@@ -1,8 +1,15 @@
 use sqlx::PgPool;
+use tonic::Request;
+use tonic::Response;
+use tonic::Status;
 use tonic::transport::Server as TonicServer;
 use tracing::info;
 
-use crate::services::users::UsersServiceServer;
+use crate::server::users::GetUserRequest;
+use crate::server::users::GetUserResponse;
+use crate::server::users::users_service_server::UsersService;
+pub use crate::server::users::users_service_server::UsersServiceServer;
+use crate::services::users::Service;
 use base::config::CONFIG;
 use base::error::Error;
 
@@ -35,5 +42,17 @@ impl Server {
             .serve(address)
             .await
             .map_err(|e| Error::InternalServer(format!("Failed to serve RPC Server: {e}")))
+    }
+}
+
+#[tonic::async_trait]
+impl UsersService for Server {
+    async fn get_user(
+        &self,
+        request: Request<GetUserRequest>,
+    ) -> Result<Response<GetUserResponse>, Status> {
+        Ok(Response::new(
+            Service::get_user(&self.pool, request.into_inner()).await?,
+        ))
     }
 }
