@@ -4,14 +4,13 @@ use uuid::Uuid;
 use crate::server::types::User;
 use crate::server::users::GetUserRequest;
 use crate::server::users::GetUserResponse;
-pub use crate::server::users::users_service_server::UsersServiceServer;
+pub use crate::server::users::users_server::UsersServer;
 use base::database::DbExecutor;
 use base::users::Users;
 
-// TODO: Rename service to UsersService
-pub struct Service;
+pub struct UserHandler;
 
-impl Service {
+impl UserHandler {
     /// Get a user.
     pub async fn get_user(
         db: impl DbExecutor<'_>,
@@ -49,7 +48,7 @@ mod tests {
         let request = GetUserRequest {
             id: user.id.to_string(),
         };
-        let response = Service::get_user(&mut *conn, request).await.unwrap();
+        let response = UserHandler::get_user(&mut *conn, request).await.unwrap();
 
         assert_eq!(
             response,
@@ -71,7 +70,7 @@ mod tests {
     async fn test_get_user_does_not_exist_returns_none() {
         let id = Uuid::now_v7();
         let request = GetUserRequest { id: id.to_string() };
-        let response = Service::get_user(&mut *conn, request).await.unwrap();
+        let response = UserHandler::get_user(&mut *conn, request).await.unwrap();
 
         assert_eq!(response.user, None);
     }

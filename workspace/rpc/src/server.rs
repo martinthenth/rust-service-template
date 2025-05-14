@@ -5,11 +5,11 @@ use tonic::Status;
 use tonic::transport::Server as TonicServer;
 use tracing::info;
 
+use crate::handlers::user_handler::UserHandler;
 use crate::server::users::GetUserRequest;
 use crate::server::users::GetUserResponse;
-use crate::server::users::users_service_server::UsersService;
-pub use crate::server::users::users_service_server::UsersServiceServer;
-use crate::services::users::Service;
+use crate::server::users::users_server::Users;
+pub use crate::server::users::users_server::UsersServer;
 use base::config::CONFIG;
 use base::error::Error;
 
@@ -33,7 +33,7 @@ impl Server {
             .parse()
             .map_err(|e| Error::InternalServer(format!("Failed to parse RPC URL: {e}")))?;
         let server = Server { pool };
-        let users_service = UsersServiceServer::new(server);
+        let users_service = UsersServer::new(server);
 
         info!("Starting RPC Server at {address}");
 
@@ -46,13 +46,13 @@ impl Server {
 }
 
 #[tonic::async_trait]
-impl UsersService for Server {
+impl Users for Server {
     async fn get_user(
         &self,
         request: Request<GetUserRequest>,
     ) -> Result<Response<GetUserResponse>, Status> {
         Ok(Response::new(
-            Service::get_user(&self.pool, request.into_inner()).await?,
+            UserHandler::get_user(&self.pool, request.into_inner()).await?,
         ))
     }
 }

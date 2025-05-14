@@ -4,7 +4,7 @@ package example.users.v1.rpc;
 
 import "example/users/v1/types/user.proto";
 
-service UsersService {
+service Users {
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
 }
 
