@@ -13,16 +13,16 @@ use crate::error::Error;
 use crate::users::user::User;
 use crate::users::user::UsersTable;
 
-#[derive(Debug, PartialEq)]
-pub struct UserCreateParams {
+#[derive(Debug)]
+pub struct CreateUserParams {
     pub first_name: String,
     pub last_name: String,
 }
 
-pub struct Users {}
+pub struct Users;
 
 impl Users {
-    #[instrument(skip(db))]
+    #[instrument]
     pub async fn get_user_by_id(db: impl DbExecutor<'_>, id: Uuid) -> Result<Option<User>, Error> {
         let (sql, values) = Query::select()
             .from(UsersTable::Table)
@@ -44,10 +44,10 @@ impl Users {
         Ok(user)
     }
 
-    #[instrument(skip(db))]
+    #[instrument]
     pub async fn create_user(
         db: impl DbExecutor<'_>,
-        params: UserCreateParams,
+        params: CreateUserParams,
     ) -> Result<User, Error> {
         let id = Uuid::now_v7();
         let timestamp = OffsetDateTime::now_utc();
@@ -88,7 +88,7 @@ mod tests {
 
     #[meta::data_case]
     async fn test_create_user_returns_user() {
-        let params = UserCreateParams {
+        let params = CreateUserParams {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };

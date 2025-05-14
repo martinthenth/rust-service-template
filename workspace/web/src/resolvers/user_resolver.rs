@@ -2,21 +2,21 @@ use async_graphql::Result;
 use tracing::instrument;
 use uuid::Uuid;
 
+use crate::schema::CreateUserInput;
 use crate::schema::User;
-use crate::schema::UserCreateInput;
 use base::database::DbExecutor;
-use base::users::UserCreateParams;
+use base::users::CreateUserParams;
 use base::users::Users;
 
 pub struct UserResolver;
 
 impl UserResolver {
-    #[instrument(skip(db))]
+    #[instrument]
     pub async fn create_user(
         db: impl DbExecutor<'_>,
-        input: UserCreateInput,
+        input: CreateUserInput,
     ) -> Result<Option<User>> {
-        let params = UserCreateParams {
+        let params = CreateUserParams {
             first_name: input.first_name,
             last_name: input.last_name,
         };
@@ -35,7 +35,7 @@ impl UserResolver {
         }
     }
 
-    #[instrument(skip(db))]
+    #[instrument]
     pub async fn user(db: impl DbExecutor<'_>, id: Uuid) -> Result<Option<User>> {
         match Users::get_user_by_id(db, id).await {
             Ok(Some(user)) => Ok(Some(User {
@@ -61,7 +61,7 @@ mod tests {
 
     #[meta::data_case]
     async fn test_create_user_returns_user() {
-        let input = UserCreateInput {
+        let input = CreateUserInput {
             first_name: "John".to_string(),
             last_name: "Doe".to_string(),
         };

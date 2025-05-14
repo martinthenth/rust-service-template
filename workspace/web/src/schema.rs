@@ -38,7 +38,7 @@ pub struct Mutation;
 #[Object]
 impl Mutation {
     /// Create a user.
-    async fn create_user(&self, ctx: &Context<'_>, input: UserCreateInput) -> Result<Option<User>> {
+    async fn create_user(&self, ctx: &Context<'_>, input: CreateUserInput) -> Result<Option<User>> {
         UserResolver::create_user(Schema::get_pool(ctx).await?, input).await
     }
 }
@@ -65,7 +65,7 @@ pub struct User {
 }
 
 #[derive(Debug, InputObject)]
-pub struct UserCreateInput {
+pub struct CreateUserInput {
     pub first_name: String,
     pub last_name: String,
 }
