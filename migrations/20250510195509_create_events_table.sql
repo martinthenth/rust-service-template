@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS events (
     id UUID NOT NULL PRIMARY KEY,
+    domain TEXT NOT NULL,
     type TEXT NOT NULL,
     payload BYTEA NOT NULL,
-    timestamp TIMESTAMP WITH TIME ZONE NOT NULL
+    timestamp TIMESTAMPTZ NOT NULL
 );

@@ -12,13 +12,13 @@ This is a Rust Service template that you can copy to implement Microservices. It
 
 ## Installation
 
-1. Install `asdf` with `buf`, `protoc`, and `rust` plugins
-2. Run `asdf install` to install languages and tools
-3. Install `docker`, preferably Docker Desktop
+1. Install `asdf` with `buf`, `protoc`, `rust`, and `task` plugins
+2. Install `docker`, preferably Docker Desktop
+3. Run `asdf install` to install languages and tools
 4. Run `docker-compose up -d` to start datastores and telemetry
-5. Run `cargo install sqlx-cli --no-default-features --features native-tls,postgres` for database migrations
-6. Run `sqlx database create --database-url postgres://postgres:postgres@localhost:5432/users_dev` for development database
-7. Run `sqlx database create --database-url postgres://postgres:postgres@localhost:5432/users_test` for test database
+5. Run `task install` to install Rust tools
+6. Run `task reset` to create and migrate databases
+7. (Optional): Run `./register-debezium.sh` to start Change Data Capture with Kafka
 
 ## How to run
 
