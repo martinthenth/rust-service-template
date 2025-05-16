@@ -10,13 +10,13 @@ use crate::database::DbExecutor;
 use crate::error::Error;
 use crate::event::Event;
 use crate::event::EventsTable;
-use crate::event_domain::EventDomain;
+use crate::event_topic::EventTopic;
 use crate::event_type::EventType;
 
 #[derive(Debug)]
 pub struct CreateEventParams {
     pub id: Uuid,
-    pub domain: EventDomain,
+    pub topic: EventTopic,
     pub r#type: EventType,
     pub payload: Vec<u8>,
     pub timestamp: OffsetDateTime,
@@ -32,7 +32,7 @@ impl Events {
             .from(EventsTable::Table)
             .columns([
                 EventsTable::Id,
-                EventsTable::Domain,
+                EventsTable::Topic,
                 EventsTable::Type,
                 EventsTable::Payload,
                 EventsTable::Timestamp,
@@ -56,14 +56,14 @@ impl Events {
             .into_table(EventsTable::Table)
             .columns([
                 EventsTable::Id,
-                EventsTable::Domain,
+                EventsTable::Topic,
                 EventsTable::Type,
                 EventsTable::Payload,
                 EventsTable::Timestamp,
             ])
             .values_panic([
                 params.id.into(),
-                params.domain.into(),
+                params.topic.into(),
                 params.r#type.into(),
                 params.payload.into(),
                 params.timestamp.into(),
@@ -105,7 +105,7 @@ mod tests {
             let timestamp = OffsetDateTime::now_utc();
             let params = CreateEventParams {
                 id,
-                domain: EventDomain::Users,
+                topic: EventTopic::UsersEvents,
                 r#type: EventType::UserCreated,
                 payload: vec![1, 2, 3],
                 timestamp,
@@ -113,7 +113,7 @@ mod tests {
             let event = Events::create_event(&mut *conn, params).await.unwrap();
 
             assert_eq!(event.id, id);
-            assert_eq!(event.domain, EventDomain::Users);
+            assert_eq!(event.topic, EventTopic::UsersEvents);
             assert_eq!(event.r#type, EventType::UserCreated);
             assert_eq!(event.payload, vec![1, 2, 3]);
             assert_eq!(event.timestamp, timestamp);

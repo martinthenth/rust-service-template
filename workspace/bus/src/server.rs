@@ -35,11 +35,12 @@ impl Server {
             .await
             .map_err(|e| Error::InternalServer(format!("Failed to connect to Kafka: {e}")))?;
         // TODO: Get topic from config
-        let topic = StreamKey::new("users")
+        let topic = StreamKey::new("dev.users.events")
             .map_err(|_| Error::InternalServer("Failed to create stream key".to_string()))?;
         let mut options = KafkaConsumerOptions::new(ConsumerMode::LoadBalanced);
         options.set_auto_offset_reset(AutoOffsetReset::Earliest);
         options.set_enable_auto_commit(false);
+        // TODO: Get group from config
         options.set_group_id(ConsumerGroup::new("some-group"));
         let mut consumer = streamer
             .create_consumer(&[topic], options)

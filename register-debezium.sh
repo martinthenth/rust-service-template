@@ -20,11 +20,11 @@ curl -i -X POST \
       "table.include.list" : "public.outbox",
       "transforms": "outbox",
       "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
-      "transforms.outbox.route.by.field": "domain",
+      "transforms.outbox.route.by.field": "topic",
       "transforms.outbox.table.field.event.id": "id",
       "transforms.outbox.table.field.event.key": "key",
       "transforms.outbox.table.field.event.payload": "payload",
-      "transforms.outbox.route.topic.replacement": "${routedByValue}",
+      "transforms.outbox.route.topic.replacement": "dev.${routedByValue}",
       "transforms.outbox.table.fields.additional.placement": "type:header"
     }
   }'

@@ -42,8 +42,7 @@ impl UserEvents {
 mod tests {
     use super::*;
     use crate::Factory;
-    use crate::outbox_domain::OutboxDomain;
-    use crate::outbox_kind::OutboxKind;
+    use crate::outbox_topic::OutboxTopic;
 
     mod create_user_created_event {
         use super::*;
@@ -67,8 +66,7 @@ mod tests {
                 .await
                 .unwrap();
 
-            assert_eq!(result.domain, OutboxDomain::Users);
-            assert_eq!(result.kind, OutboxKind::Events);
+            assert_eq!(result.topic, OutboxTopic::UsersEvents);
             assert_eq!(result.r#type, OutboxType::UserCreated);
             assert_eq!(result.key, user.id);
             assert_eq!(result.payload, payload.encode_to_vec());
