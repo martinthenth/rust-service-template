@@ -13,6 +13,7 @@ pub struct Config {
     pub database_url: String,
     pub http_url: String,
     pub grpc_url: String,
+    pub kafka_url: String,
     pub cors_origins: Vec<String>,
 }
 
@@ -49,6 +50,7 @@ impl Default for Config {
             database_url: var("DATABASE_URL").unwrap(),
             http_url: var("HTTP_URL").unwrap(),
             grpc_url: var("GRPC_URL").unwrap(),
+            kafka_url: var("KAFKA_URL").unwrap(),
             cors_origins: var("CORS_ORIGINS")
                 .unwrap_or_default()
                 .split(',')

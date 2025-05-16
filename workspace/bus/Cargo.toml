@@ -4,7 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-base = { path = "../base" }
+base = { path = "../base", features = ["testing"] }
 ctor = "0.4.2"
+prost = "0.13.5"
+sea-streamer = { version = "0.5", features = ["kafka", "runtime-tokio"] }
+sqlx = "0.8.5"
 tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.41"
+
+[build-dependencies]
+prost-build = "0.13.5"
+
+[dev-dependencies]
+meta = { path = "../meta" }

@@ -16,7 +16,7 @@ curl -i -X POST \
       "database.dbname": "users_dev",
       "slot.name": "users_connector_slot",
       "plugin.name": "pgoutput",
-      "topic.prefix": "dev",
+      "topic.prefix": "users_dev",
       "table.include.list" : "public.outbox",
       "transforms": "outbox",
       "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
@@ -24,7 +24,7 @@ curl -i -X POST \
       "transforms.outbox.table.field.event.id": "id",
       "transforms.outbox.table.field.event.key": "key",
       "transforms.outbox.table.field.event.payload": "payload",
-      "transforms.outbox.route.topic.replacement": "${routedByValue}.${action}",
-      "transforms.outbox.table.fields.additional.placement": "action:header:action,type:header:type"
+      "transforms.outbox.route.topic.replacement": "${routedByValue}",
+      "transforms.outbox.table.fields.additional.placement": "type:header"
     }
   }'
