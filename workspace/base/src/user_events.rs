@@ -42,26 +42,30 @@ mod tests {
     use super::*;
     use crate::Factory;
 
-    #[meta::data_case]
-    async fn test_create_user_created_event_returns_outbox() {
-        let user = User::insert(&mut *conn, User::factory()).await;
-        let payload = UserCreated {
-            user: Some(ProtoUser {
-                id: user.id.to_string(),
-                first_name: user.first_name.clone(),
-                last_name: user.last_name.clone(),
-                banned_at: user.banned_at.map_or("".to_string(), |dt| dt.to_string()),
-                created_at: user.created_at.to_string(),
-                updated_at: user.updated_at.to_string(),
-                deleted_at: user.deleted_at.map_or("".to_string(), |dt| dt.to_string()),
-            }),
-        };
+    mod create_user_created_event {
+        use super::*;
 
-        let result = UserEvents::create_user_created_event(&mut *conn, &user)
-            .await
-            .unwrap();
+        #[meta::data_case]
+        async fn returns_outbox() {
+            let user = User::insert(&mut *conn, User::factory()).await;
+            let payload = UserCreated {
+                user: Some(ProtoUser {
+                    id: user.id.to_string(),
+                    first_name: user.first_name.clone(),
+                    last_name: user.last_name.clone(),
+                    banned_at: user.banned_at.map_or("".to_string(), |dt| dt.to_string()),
+                    created_at: user.created_at.to_string(),
+                    updated_at: user.updated_at.to_string(),
+                    deleted_at: user.deleted_at.map_or("".to_string(), |dt| dt.to_string()),
+                }),
+            };
 
-        assert_eq!(result.r#type, OutboxType::UserCreated);
-        assert_eq!(result.payload, payload.encode_to_vec());
+            let result = UserEvents::create_user_created_event(&mut *conn, &user)
+                .await
+                .unwrap();
+
+            assert_eq!(result.r#type, OutboxType::UserCreated);
+            assert_eq!(result.payload, payload.encode_to_vec());
+        }
     }
 }

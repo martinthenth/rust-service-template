@@ -59,47 +59,55 @@ mod tests {
     use base::Factory;
     use base::user::User as BaseUser;
 
-    #[meta::data_case]
-    async fn test_create_user_returns_user() {
-        let input = CreateUserInput {
-            first_name: "John".to_string(),
-            last_name: "Doe".to_string(),
-        };
-        let user = UserResolver::create_user(&mut *conn, input)
-            .await
-            .unwrap()
-            .unwrap();
+    mod create_user {
+        use super::*;
 
-        assert_eq!(user.first_name, Some("John".to_string()));
-        assert_eq!(user.last_name, Some("Doe".to_string()));
+        #[meta::data_case]
+        async fn returns_user() {
+            let input = CreateUserInput {
+                first_name: "John".to_string(),
+                last_name: "Doe".to_string(),
+            };
+            let user = UserResolver::create_user(&mut *conn, input)
+                .await
+                .unwrap()
+                .unwrap();
+
+            assert_eq!(user.first_name, Some("John".to_string()));
+            assert_eq!(user.last_name, Some("Doe".to_string()));
+        }
     }
 
-    #[meta::data_case]
-    async fn test_user_returns_user() {
-        let user = BaseUser::insert(&mut *conn, BaseUser::factory()).await;
+    mod user {
+        use super::*;
 
-        let result = UserResolver::user(&mut *conn, user.id).await;
+        #[meta::data_case]
+        async fn returns_user() {
+            let user = BaseUser::insert(&mut *conn, BaseUser::factory()).await;
 
-        assert_eq!(
-            result,
-            Ok(Some(User {
-                id: Some(user.id),
-                first_name: Some(user.first_name),
-                last_name: Some(user.last_name),
-                banned_at: user.banned_at,
-                created_at: Some(user.created_at),
-                updated_at: Some(user.updated_at),
-                deleted_at: user.deleted_at
-            }))
-        );
-    }
+            let result = UserResolver::user(&mut *conn, user.id).await;
 
-    #[meta::data_case]
-    async fn test_user_does_not_exist_returns_none() {
-        let id = Uuid::now_v7();
+            assert_eq!(
+                result,
+                Ok(Some(User {
+                    id: Some(user.id),
+                    first_name: Some(user.first_name),
+                    last_name: Some(user.last_name),
+                    banned_at: user.banned_at,
+                    created_at: Some(user.created_at),
+                    updated_at: Some(user.updated_at),
+                    deleted_at: user.deleted_at
+                }))
+            );
+        }
 
-        let result = UserResolver::user(&mut *conn, id).await;
+        #[meta::data_case]
+        async fn does_not_exist_returns_none() {
+            let id = Uuid::now_v7();
 
-        assert_eq!(result, Ok(None));
+            let result = UserResolver::user(&mut *conn, id).await;
+
+            assert_eq!(result, Ok(None));
+        }
     }
 }

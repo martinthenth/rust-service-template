@@ -26,7 +26,6 @@ pub struct CreateUserParams {
     pub last_name: String,
 }
 
-// TODO: Functional approach vs object oriented approach.
 pub struct Users;
 
 impl Users {
@@ -99,49 +98,57 @@ mod tests {
     use crate::outbox_type::OutboxType;
     use crate::outboxes::Outboxes;
 
-    #[meta::data_case]
-    async fn test_get_user_by_id_returns_user() {
-        let user = User::insert(&mut *conn, User::factory()).await;
+    mod get_user_by_id {
+        use super::*;
 
-        let result = Users::get_user_by_id(&mut *conn, user.id).await.unwrap();
+        #[meta::data_case]
+        async fn returns_user() {
+            let user = User::insert(&mut *conn, User::factory()).await;
 
-        assert_eq!(result, Some(user));
+            let result = Users::get_user_by_id(&mut *conn, user.id).await.unwrap();
+
+            assert_eq!(result, Some(user));
+        }
+
+        #[meta::data_case]
+        async fn does_not_exist_returns_none() {
+            let id = Uuid::now_v7();
+
+            let result = Users::get_user_by_id(&mut *conn, id).await.unwrap();
+
+            assert_eq!(result, None);
+        }
     }
 
-    #[meta::data_case]
-    async fn test_get_user_by_id_does_not_exist_returns_none() {
-        let id = Uuid::now_v7();
+    mod create_user {
+        use super::*;
 
-        let result = Users::get_user_by_id(&mut *conn, id).await.unwrap();
+        #[meta::data_case]
+        async fn returns_user() {
+            let params = CreateUserParams {
+                first_name: "John".to_string(),
+                last_name: "Doe".to_string(),
+            };
+            let result = Users::create_user(&mut *conn, params).await.unwrap();
 
-        assert_eq!(result, None);
-    }
+            assert_eq!(result.first_name, "John");
+            assert_eq!(result.last_name, "Doe");
+            assert_eq!(result.banned_at, None);
+            assert_eq!(result.created_at, result.updated_at);
+            assert_eq!(result.deleted_at, None);
+        }
 
-    #[meta::data_case]
-    async fn test_create_user_returns_user() {
-        let params = CreateUserParams {
-            first_name: "John".to_string(),
-            last_name: "Doe".to_string(),
-        };
-        let result = Users::create_user(&mut *conn, params).await.unwrap();
+        #[meta::data_case]
+        async fn creates_event() {
+            let params = CreateUserParams {
+                first_name: "John".to_string(),
+                last_name: "Doe".to_string(),
+            };
+            let _result = Users::create_user(&mut *conn, params).await.unwrap();
+            let outboxes = Outboxes::list_outboxes(&mut *conn).await.unwrap();
 
-        assert_eq!(result.first_name, "John");
-        assert_eq!(result.last_name, "Doe");
-        assert_eq!(result.banned_at, None);
-        assert_eq!(result.created_at, result.updated_at);
-        assert_eq!(result.deleted_at, None);
-    }
-
-    #[meta::data_case]
-    async fn test_create_user_creates_event() {
-        let params = CreateUserParams {
-            first_name: "John".to_string(),
-            last_name: "Doe".to_string(),
-        };
-        let _result = Users::create_user(&mut *conn, params).await.unwrap();
-        let outboxes = Outboxes::list_outboxes(&mut *conn).await.unwrap();
-
-        assert_eq!(outboxes.len(), 1);
-        assert_eq!(outboxes[0].r#type, OutboxType::UserCreated);
+            assert_eq!(outboxes.len(), 1);
+            assert_eq!(outboxes[0].r#type, OutboxType::UserCreated);
+        }
     }
 }

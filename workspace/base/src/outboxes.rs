@@ -74,15 +74,19 @@ impl Outboxes {
 mod tests {
     use super::*;
 
-    #[meta::data_case]
-    async fn test_create_outbox_returns_outbox() {
-        let params = CreateOutboxParams {
-            r#type: OutboxType::UserCreated,
-            payload: vec![1, 2, 3],
-        };
-        let outbox = Outboxes::create_outbox(&mut *conn, params).await.unwrap();
+    mod create_outbox {
+        use super::*;
 
-        assert_eq!(outbox.r#type, OutboxType::UserCreated);
-        assert_eq!(outbox.payload, vec![1, 2, 3]);
+        #[meta::data_case]
+        async fn returns_outbox() {
+            let params = CreateOutboxParams {
+                r#type: OutboxType::UserCreated,
+                payload: vec![1, 2, 3],
+            };
+            let outbox = Outboxes::create_outbox(&mut *conn, params).await.unwrap();
+
+            assert_eq!(outbox.r#type, OutboxType::UserCreated);
+            assert_eq!(outbox.payload, vec![1, 2, 3]);
+        }
     }
 }

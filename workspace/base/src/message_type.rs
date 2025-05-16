@@ -1,7 +1,7 @@
 use heck::ToSnakeCase;
 use sqlx::prelude::Type;
 
-#[derive(Debug, PartialEq, Type, Copy, Clone)]
+#[derive(Debug, PartialEq, Type)]
 #[sqlx(type_name = "text")]
 pub enum MessageType {
     #[sqlx(rename = "user_created")]

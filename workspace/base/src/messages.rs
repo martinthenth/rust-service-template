@@ -78,34 +78,40 @@ mod tests {
     use super::*;
     use crate::Factory;
 
-    #[meta::data_case]
-    async fn test_get_message_by_id_returns_message() {
-        let message = Message::insert(&mut *conn, Message::factory()).await;
+    mod get_message_by_id {
+        use super::*;
 
-        let result = Messages::get_message_by_id(&mut *conn, message.id)
-            .await
-            .unwrap();
+        #[meta::data_case]
+        async fn returns_message() {
+            let message = Message::insert(&mut *conn, Message::factory()).await;
 
-        assert_eq!(result, message);
+            let result = Messages::get_message_by_id(&mut *conn, message.id)
+                .await
+                .unwrap();
+
+            assert_eq!(result, message);
+        }
     }
 
-    #[meta::data_case]
-    async fn test_create_message_returns_message() {
-        let id = Uuid::now_v7();
-        let message_type = MessageType::UserCreated;
-        let payload = vec![1, 2, 3];
-        let timestamp = OffsetDateTime::now_utc();
-        let params = CreateMessageParams {
-            id,
-            r#type: message_type,
-            payload: payload.clone(),
-            timestamp,
-        };
-        let message = Messages::create_message(&mut *conn, params).await.unwrap();
+    mod create_message {
+        use super::*;
 
-        assert_eq!(message.id, id);
-        assert_eq!(message.r#type, message_type);
-        assert_eq!(message.payload, payload);
-        assert_eq!(message.timestamp, timestamp);
+        #[meta::data_case]
+        async fn returns_message() {
+            let id = Uuid::now_v7();
+            let timestamp = OffsetDateTime::now_utc();
+            let params = CreateMessageParams {
+                id,
+                r#type: MessageType::UserCreated,
+                payload: vec![1, 2, 3],
+                timestamp,
+            };
+            let message = Messages::create_message(&mut *conn, params).await.unwrap();
+
+            assert_eq!(message.id, id);
+            assert_eq!(message.r#type, MessageType::UserCreated);
+            assert_eq!(message.payload, vec![1, 2, 3]);
+            assert_eq!(message.timestamp, timestamp);
+        }
     }
 }

@@ -41,37 +41,41 @@ mod tests {
     use base::Factory;
     use base::user::User as BaseUser;
 
-    #[meta::data_case]
-    async fn test_get_user_returns_user() {
-        let user = BaseUser::insert(&mut *conn, BaseUser::factory()).await;
+    mod get_user {
+        use super::*;
 
-        let request = GetUserRequest {
-            id: user.id.to_string(),
-        };
-        let response = UserHandler::get_user(&mut *conn, request).await.unwrap();
+        #[meta::data_case]
+        async fn returns_user() {
+            let user = BaseUser::insert(&mut *conn, BaseUser::factory()).await;
 
-        assert_eq!(
-            response,
-            GetUserResponse {
-                user: Some(User {
-                    id: user.id.to_string(),
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    banned_at: user.banned_at.map_or("".to_string(), |s| s.to_string()),
-                    created_at: user.created_at.to_string(),
-                    updated_at: user.updated_at.to_string(),
-                    deleted_at: user.deleted_at.map_or("".to_string(), |s| s.to_string()),
-                }),
-            }
-        );
-    }
+            let request = GetUserRequest {
+                id: user.id.to_string(),
+            };
+            let response = UserHandler::get_user(&mut *conn, request).await.unwrap();
 
-    #[meta::data_case]
-    async fn test_get_user_does_not_exist_returns_none() {
-        let id = Uuid::now_v7();
-        let request = GetUserRequest { id: id.to_string() };
-        let response = UserHandler::get_user(&mut *conn, request).await.unwrap();
+            assert_eq!(
+                response,
+                GetUserResponse {
+                    user: Some(User {
+                        id: user.id.to_string(),
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                        banned_at: user.banned_at.map_or("".to_string(), |s| s.to_string()),
+                        created_at: user.created_at.to_string(),
+                        updated_at: user.updated_at.to_string(),
+                        deleted_at: user.deleted_at.map_or("".to_string(), |s| s.to_string()),
+                    }),
+                }
+            );
+        }
 
-        assert_eq!(response.user, None);
+        #[meta::data_case]
+        async fn does_not_exist_returns_none() {
+            let id = Uuid::now_v7();
+            let request = GetUserRequest { id: id.to_string() };
+            let response = UserHandler::get_user(&mut *conn, request).await.unwrap();
+
+            assert_eq!(response.user, None);
+        }
     }
 }
