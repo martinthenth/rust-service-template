@@ -7,6 +7,7 @@ use bus::server::Server;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    // TODO: Add tracing
     let _config = Config::load()?;
     let pool = Database::connect_database().await?;
 

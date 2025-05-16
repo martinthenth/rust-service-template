@@ -1,24 +1,21 @@
-use sea_streamer::Buffer;
-use sea_streamer::ConnectOptions;
 use sea_streamer::Consumer;
 use sea_streamer::ConsumerGroup;
 use sea_streamer::ConsumerMode;
 use sea_streamer::ConsumerOptions;
 use sea_streamer::Message;
 use sea_streamer::StreamKey;
-use sea_streamer::StreamUrl;
 use sea_streamer::Streamer;
-use sea_streamer::export::futures::StreamExt;
 use sea_streamer::kafka::AutoOffsetReset;
-use sea_streamer::kafka::KafkaConsumer;
 use sea_streamer::kafka::KafkaConsumerOptions;
-use sea_streamer::kafka::KafkaMessage;
 use sea_streamer::kafka::KafkaStreamer;
 use sqlx::PgPool;
 use tracing::info;
 
 use base::config::CONFIG;
 use base::error::Error;
+use tracing::warn;
+
+use crate::handlers::users_events_handler::UsersEventsHandler;
 
 #[derive(Debug)]
 pub struct Server {}
@@ -29,51 +26,38 @@ impl Server {
         let address = CONFIG
             .kafka_url
             .parse()
-            .map_err(|e| Error::InternalServer(format!("Failed to parse RPC URL: {e}")))?;
-        // let address = StreamUrl::from(kafka_url);
+            .map_err(|e| Error::InternalServer(format!("Failed to parse Kafka URL: {e}")))?;
+        let topic = StreamKey::new(CONFIG.kafka_topic.clone())
+            .map_err(|_| Error::InternalServer("Failed to create stream key".to_string()))?;
+        let group = ConsumerGroup::new(CONFIG.kafka_group.clone());
         let streamer = KafkaStreamer::connect(address, Default::default())
             .await
             .map_err(|e| Error::InternalServer(format!("Failed to connect to Kafka: {e}")))?;
-        // TODO: Get topic from config
-        let topic = StreamKey::new("dev.users.events")
-            .map_err(|_| Error::InternalServer("Failed to create stream key".to_string()))?;
         let mut options = KafkaConsumerOptions::new(ConsumerMode::LoadBalanced);
         options.set_auto_offset_reset(AutoOffsetReset::Earliest);
         options.set_enable_auto_commit(false);
-        // TODO: Get group from config
-        options.set_group_id(ConsumerGroup::new("some-group"));
-        let mut consumer = streamer
+        options.set_group_id(group);
+        let consumer = streamer
             .create_consumer(&[topic], options)
             .await
             .map_err(|e| Error::InternalServer(format!("Failed to create consumer: {e}")))?;
 
-        let messages = Self::consume(&mut consumer, 10).await;
+        info!("Starting Bus Server listening to {}", CONFIG.kafka_topic);
 
-        println!("messages: {:?}", messages);
+        loop {
+            let message = consumer
+                .next()
+                .await
+                .map_err(|_| Error::InternalServer("Failed to get message".to_string()))?;
 
-        // loop {
-        //     let mess: KafkaMessage = consumer.next().await?;
-        //     println!("[{}] {}", mess.timestamp(), mess.message().as_str()?);
-        // }
-
-        info!("Starting Bus Server");
-
-        Ok(())
-    }
-
-    async fn consume(consumer: &mut KafkaConsumer, num: usize) -> Vec<usize> {
-        consumer
-            .stream()
-            .take(num)
-            .map(|mess| {
-                mess.unwrap()
-                    .message()
-                    .as_str()
-                    .unwrap()
-                    .parse::<usize>()
-                    .unwrap()
-            })
-            .collect::<Vec<usize>>()
-            .await
+            match message.stream_key() {
+                key if key.to_string().ends_with(".users.events") => {
+                    UsersEventsHandler::handle_message(&pool, message).await?;
+                }
+                _ => {
+                    warn!("Unhandled topic: {}", message.stream_key());
+                }
+            }
+        }
     }
 }
