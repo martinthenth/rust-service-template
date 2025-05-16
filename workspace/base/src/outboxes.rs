@@ -9,10 +9,13 @@ use crate::database::DbExecutor;
 use crate::error::Error;
 use crate::outbox::Outbox;
 use crate::outbox::OutboxTable;
+use crate::outbox_domain::OutboxDomain;
+use crate::outbox_kind::OutboxKind;
 use crate::outbox_type::OutboxType;
 
 #[derive(Debug)]
 pub struct CreateOutboxParams {
+    pub key: Uuid,
     pub r#type: OutboxType,
     pub payload: Vec<u8>,
 }
@@ -27,18 +30,26 @@ impl Outboxes {
         params: CreateOutboxParams,
     ) -> Result<Outbox, Error> {
         let id = Uuid::now_v7();
+        let domain = OutboxDomain::Users;
+        let kind = OutboxKind::Events;
         let timestamp = OffsetDateTime::now_utc();
         let (sql, values) = Query::insert()
             .into_table(OutboxTable::Table)
             .columns([
                 OutboxTable::Id,
+                OutboxTable::Domain,
+                OutboxTable::Kind,
                 OutboxTable::Type,
+                OutboxTable::Key,
                 OutboxTable::Payload,
                 OutboxTable::Timestamp,
             ])
             .values_panic([
                 id.into(),
+                domain.into(),
+                kind.into(),
                 params.r#type.into(),
+                params.key.into(),
                 params.payload.into(),
                 timestamp.into(),
             ])
@@ -57,7 +68,10 @@ impl Outboxes {
             .from(OutboxTable::Table)
             .columns([
                 OutboxTable::Id,
+                OutboxTable::Domain,
+                OutboxTable::Kind,
                 OutboxTable::Type,
+                OutboxTable::Key,
                 OutboxTable::Payload,
                 OutboxTable::Timestamp,
             ])
@@ -80,6 +94,7 @@ mod tests {
         #[meta::data_case]
         async fn returns_outbox() {
             let params = CreateOutboxParams {
+                key: Uuid::now_v7(),
                 r#type: OutboxType::UserCreated,
                 payload: vec![1, 2, 3],
             };

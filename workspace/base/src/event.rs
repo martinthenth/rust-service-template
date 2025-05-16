@@ -8,32 +8,36 @@ use uuid::Uuid;
 
 use crate::Factory;
 use crate::database::DbExecutor;
-use crate::message_type::MessageType;
+use crate::event_domain::EventDomain;
+use crate::event_type::EventType;
 
 #[derive(Debug, FromRow, PartialEq)]
-pub struct Message {
+pub struct Event {
     pub id: Uuid,
-    pub r#type: MessageType,
+    pub domain: EventDomain,
+    pub r#type: EventType,
     pub payload: Vec<u8>,
     pub timestamp: OffsetDateTime,
 }
 
-pub enum MessagesTable {
+pub enum EventsTable {
     Table,
     Id,
+    Domain,
     Type,
     Payload,
     Timestamp,
 }
 
-impl Iden for MessagesTable {
+impl Iden for EventsTable {
     fn unquoted(&self, s: &mut dyn std::fmt::Write) {
         write!(
             s,
             "{}",
             match self {
-                Self::Table => "outbox",
+                Self::Table => "events",
                 Self::Id => "id",
+                Self::Domain => "domain",
                 Self::Type => "type",
                 Self::Payload => "payload",
                 Self::Timestamp => "timestamp",
@@ -43,39 +47,42 @@ impl Iden for MessagesTable {
     }
 }
 
-impl Factory for Message {
+impl Factory for Event {
     #[cfg(feature = "testing")]
     fn factory() -> Self {
         let timestamp = OffsetDateTime::now_utc();
 
-        Message {
+        Event {
             id: Uuid::now_v7(),
-            r#type: MessageType::UserCreated,
+            domain: EventDomain::Users,
+            r#type: EventType::UserCreated,
             payload: vec![],
             timestamp,
         }
     }
 
     #[cfg(feature = "testing")]
-    async fn insert(db: impl DbExecutor<'_>, message: Self) -> Self {
+    async fn insert(db: impl DbExecutor<'_>, event: Self) -> Self {
         let (sql, values) = Query::insert()
-            .into_table(MessagesTable::Table)
+            .into_table(EventsTable::Table)
             .columns([
-                MessagesTable::Id,
-                MessagesTable::Type,
-                MessagesTable::Payload,
-                MessagesTable::Timestamp,
+                EventsTable::Id,
+                EventsTable::Domain,
+                EventsTable::Type,
+                EventsTable::Payload,
+                EventsTable::Timestamp,
             ])
             .values_panic([
-                message.id.into(),
-                message.r#type.into(),
-                message.payload.into(),
-                message.timestamp.into(),
+                event.id.into(),
+                event.domain.into(),
+                event.r#type.into(),
+                event.payload.into(),
+                event.timestamp.into(),
             ])
             .returning_all()
             .build_sqlx(PostgresQueryBuilder);
 
-        sqlx::query_as_with::<_, Message, _>(&sql, values)
+        sqlx::query_as_with::<_, Event, _>(&sql, values)
             .fetch_one(db)
             .await
             .unwrap()

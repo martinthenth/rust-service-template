@@ -1,10 +1,13 @@
 pub mod config;
 pub mod database;
 pub mod error;
-mod message;
-mod message_type;
-mod messages;
+mod event;
+mod event_domain;
+mod event_type;
+mod events;
 mod outbox;
+mod outbox_domain;
+mod outbox_kind;
 mod outbox_type;
 mod outboxes;
 mod test;
