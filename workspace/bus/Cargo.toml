@@ -7,10 +7,14 @@ edition = "2024"
 base = { path = "../base", features = ["testing"] }
 base64 = "0.22.1"
 ctor = "0.4.2"
+init-tracing-opentelemetry = { version = "0.28.0", features = [
+    "tracing_subscriber_ext",
+] }
 prost = "0.13.5"
 sea-streamer = { version = "0.5", features = ["kafka", "runtime-tokio"] }
 serde_json = "1.0"
 sqlx = "0.8.5"
+time = "0.3.41"
 tokio = { version = "1.45.0", features = ["macros", "rt-multi-thread"] }
 tracing = "0.1.41"
 

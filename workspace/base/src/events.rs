@@ -10,13 +10,11 @@ use crate::database::DbExecutor;
 use crate::error::Error;
 use crate::event::Event;
 use crate::event::EventsTable;
-use crate::event_topic::EventTopic;
 use crate::event_type::EventType;
 
 #[derive(Debug)]
 pub struct CreateEventParams {
     pub id: Uuid,
-    pub topic: EventTopic,
     pub r#type: EventType,
     pub payload: Vec<u8>,
     pub timestamp: OffsetDateTime,
@@ -27,12 +25,14 @@ pub struct Events;
 impl Events {
     /// Get an event by its ID.
     #[instrument]
-    pub async fn get_event_by_id(db: impl DbExecutor<'_>, id: Uuid) -> Result<Event, Error> {
+    pub async fn get_event_by_id(
+        db: impl DbExecutor<'_>,
+        id: Uuid,
+    ) -> Result<Option<Event>, Error> {
         let (sql, values) = Query::select()
             .from(EventsTable::Table)
             .columns([
                 EventsTable::Id,
-                EventsTable::Topic,
                 EventsTable::Type,
                 EventsTable::Payload,
                 EventsTable::Timestamp,
@@ -40,7 +40,7 @@ impl Events {
             .and_where(Expr::col(EventsTable::Id).eq(id))
             .build_sqlx(PostgresQueryBuilder);
         let event = sqlx::query_as_with::<_, Event, _>(&sql, values)
-            .fetch_one(db)
+            .fetch_optional(db)
             .await?;
 
         Ok(event)
@@ -56,14 +56,12 @@ impl Events {
             .into_table(EventsTable::Table)
             .columns([
                 EventsTable::Id,
-                EventsTable::Topic,
                 EventsTable::Type,
                 EventsTable::Payload,
                 EventsTable::Timestamp,
             ])
             .values_panic([
                 params.id.into(),
-                params.topic.into(),
                 params.r#type.into(),
                 params.payload.into(),
                 params.timestamp.into(),
@@ -75,6 +73,24 @@ impl Events {
             .await?;
 
         Ok(event)
+    }
+
+    #[cfg(feature = "testing")]
+    pub async fn list_events(db: impl DbExecutor<'_>) -> Result<Vec<Event>, Error> {
+        let (sql, values) = Query::select()
+            .from(EventsTable::Table)
+            .columns([
+                EventsTable::Id,
+                EventsTable::Type,
+                EventsTable::Payload,
+                EventsTable::Timestamp,
+            ])
+            .build_sqlx(PostgresQueryBuilder);
+        let events = sqlx::query_as_with::<_, Event, _>(&sql, values)
+            .fetch_all(db)
+            .await?;
+
+        Ok(events)
     }
 }
 
@@ -92,7 +108,7 @@ mod tests {
 
             let result = Events::get_event_by_id(&mut *conn, event.id).await.unwrap();
 
-            assert_eq!(result, event);
+            assert_eq!(result, Some(event));
         }
     }
 
@@ -105,7 +121,6 @@ mod tests {
             let timestamp = OffsetDateTime::now_utc();
             let params = CreateEventParams {
                 id,
-                topic: EventTopic::UsersEvents,
                 r#type: EventType::UserCreated,
                 payload: vec![1, 2, 3],
                 timestamp,
@@ -113,7 +128,6 @@ mod tests {
             let event = Events::create_event(&mut *conn, params).await.unwrap();
 
             assert_eq!(event.id, id);
-            assert_eq!(event.topic, EventTopic::UsersEvents);
             assert_eq!(event.r#type, EventType::UserCreated);
             assert_eq!(event.payload, vec![1, 2, 3]);
             assert_eq!(event.timestamp, timestamp);

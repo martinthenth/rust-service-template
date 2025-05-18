@@ -1,17 +1,12 @@
 use heck::ToSnakeCase;
 use sqlx::prelude::Type;
+use strum::Display;
 
-#[derive(Debug, PartialEq, Type)]
+#[derive(Debug, Display, PartialEq, Type)]
 #[sqlx(type_name = "text")]
 pub enum OutboxTopic {
     #[sqlx(rename = "users.events")]
     UsersEvents,
-}
-
-impl std::fmt::Display for OutboxTopic {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
 }
 
 impl From<OutboxTopic> for sea_query::Value {

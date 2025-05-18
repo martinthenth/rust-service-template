@@ -24,7 +24,6 @@ curl -i -X POST \
       "transforms.outbox.table.field.event.id": "id",
       "transforms.outbox.table.field.event.key": "key",
       "transforms.outbox.table.field.event.payload": "payload",
-      "transforms.outbox.route.topic.replacement": "dev.${routedByValue}",
-      "transforms.outbox.table.fields.additional.placement": "type:header"
+      "transforms.outbox.route.topic.replacement": "dev.${routedByValue}"
     }
   }'

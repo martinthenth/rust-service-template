@@ -1,8 +1,9 @@
 use async_graphql::ErrorExtensions;
 use heck::ToLowerCamelCase;
 use std::collections::BTreeMap;
+use strum::Display;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Display, PartialEq)]
 pub enum Error {
     BadRequest,
     Unauthenticated,
@@ -13,12 +14,6 @@ pub enum Error {
     Validation(BTreeMap<String, String>),
     InternalServer(String),
     NotImplemented,
-}
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
-    }
 }
 
 impl Error {

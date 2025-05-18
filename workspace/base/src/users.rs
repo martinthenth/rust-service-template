@@ -95,7 +95,6 @@ impl Users {
 mod tests {
     use super::*;
     use crate::Factory;
-    use crate::outbox_type::OutboxType;
     use crate::outboxes::Outboxes;
 
     mod get_user_by_id {
@@ -148,7 +147,6 @@ mod tests {
             let outboxes = Outboxes::list_outboxes(&mut *conn).await.unwrap();
 
             assert_eq!(outboxes.len(), 1);
-            assert_eq!(outboxes[0].r#type, OutboxType::UserCreated);
         }
     }
 }

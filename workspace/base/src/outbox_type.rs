@@ -1,21 +1,10 @@
-use heck::ToSnakeCase;
 use sqlx::prelude::Type;
+use strum::Display;
 
-#[derive(Debug, PartialEq, Type)]
+#[derive(Debug, Display, PartialEq, Type)]
 #[sqlx(type_name = "text")]
 pub enum OutboxType {
     #[sqlx(rename = "user_created")]
+    #[strum(serialize = "user_created")]
     UserCreated,
-}
-
-impl std::fmt::Display for OutboxType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl From<OutboxType> for sea_query::Value {
-    fn from(t: OutboxType) -> Self {
-        t.to_string().to_snake_case().into()
-    }
 }

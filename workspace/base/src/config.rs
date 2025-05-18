@@ -29,7 +29,6 @@ impl Config {
 
         from_path(Self::find_env_file(env_file))
             .map_err(|e| Error::InternalServer(format!("Failed to load {env_file}: {e}")))?;
-
         from_path(Self::find_env_file(".env"))
             .map_err(|e| Error::InternalServer(format!("Failed to load base .env file: {e}")))?;
 

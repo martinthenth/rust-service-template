@@ -67,7 +67,6 @@ impl Server {
             .route("/", get(Self::graphiql_html))
             .route("/graph", post(Self::graphql_json))
             .route("/health", get(Self::health_check))
-            // TODO: Fallback URLs are not showing up in traces
             .fallback(Self::fallback_json)
             .with_state(schema)
             .layer(cors_layer)

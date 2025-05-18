@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS outbox (
     id UUID NOT NULL PRIMARY KEY,
     topic TEXT NOT NULL,
-    type TEXT NOT NULL,
     key UUID NOT NULL,
     payload BYTEA NOT NULL,
     timestamp TIMESTAMPTZ NOT NULL

@@ -1,10 +1,9 @@
 pub mod config;
 pub mod database;
 pub mod error;
-mod event;
-mod event_topic;
-mod event_type;
-mod events;
+pub mod event;
+pub mod event_type;
+pub mod events;
 mod outbox;
 mod outbox_topic;
 mod outbox_type;
@@ -15,6 +14,10 @@ mod user_events;
 pub mod users;
 
 use crate::database::DbExecutor;
+
+pub mod common {
+    include!(concat!(env!("OUT_DIR"), "/example.common.v1.rs"));
+}
 
 #[allow(async_fn_in_trait)]
 pub trait Factory {

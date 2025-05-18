@@ -4,13 +4,11 @@ use time::OffsetDateTime;
 use uuid::Uuid;
 
 use crate::outbox_topic::OutboxTopic;
-use crate::outbox_type::OutboxType;
 
 #[derive(Debug, FromRow, PartialEq)]
 pub struct Outbox {
     pub id: Uuid,
     pub topic: OutboxTopic,
-    pub r#type: OutboxType,
     pub key: Uuid,
     pub payload: Vec<u8>,
     pub timestamp: OffsetDateTime,
@@ -20,7 +18,6 @@ pub enum OutboxTable {
     Table,
     Id,
     Topic,
-    Type,
     Key,
     Payload,
     Timestamp,
@@ -35,7 +32,6 @@ impl Iden for OutboxTable {
                 Self::Table => "outbox",
                 Self::Id => "id",
                 Self::Topic => "topic",
-                Self::Type => "type",
                 Self::Key => "key",
                 Self::Payload => "payload",
                 Self::Timestamp => "timestamp",

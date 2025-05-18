@@ -8,13 +8,11 @@ use uuid::Uuid;
 
 use crate::Factory;
 use crate::database::DbExecutor;
-use crate::event_topic::EventTopic;
 use crate::event_type::EventType;
 
 #[derive(Debug, FromRow, PartialEq)]
 pub struct Event {
     pub id: Uuid,
-    pub topic: EventTopic,
     pub r#type: EventType,
     pub payload: Vec<u8>,
     pub timestamp: OffsetDateTime,
@@ -23,7 +21,6 @@ pub struct Event {
 pub enum EventsTable {
     Table,
     Id,
-    Topic,
     Type,
     Payload,
     Timestamp,
@@ -37,7 +34,6 @@ impl Iden for EventsTable {
             match self {
                 Self::Table => "events",
                 Self::Id => "id",
-                Self::Topic => "topic",
                 Self::Type => "type",
                 Self::Payload => "payload",
                 Self::Timestamp => "timestamp",
@@ -54,7 +50,6 @@ impl Factory for Event {
 
         Event {
             id: Uuid::now_v7(),
-            topic: EventTopic::UsersEvents,
             r#type: EventType::UserCreated,
             payload: vec![],
             timestamp,
@@ -67,14 +62,12 @@ impl Factory for Event {
             .into_table(EventsTable::Table)
             .columns([
                 EventsTable::Id,
-                EventsTable::Topic,
                 EventsTable::Type,
                 EventsTable::Payload,
                 EventsTable::Timestamp,
             ])
             .values_panic([
                 event.id.into(),
-                event.topic.into(),
                 event.r#type.into(),
                 event.payload.into(),
                 event.timestamp.into(),
