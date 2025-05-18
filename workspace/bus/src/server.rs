@@ -55,7 +55,6 @@ impl Server {
                 .map_err(|e| Error::InternalServer(format!("Failed to get message: {e}")))?;
             let topic = message.stream_key();
             let payload = message.message();
-            // TODO: Handle error for unwrap
             let json: Value = serde_json::from_str(
                 payload
                     .as_str()
@@ -73,7 +72,7 @@ impl Server {
 
             match topic {
                 key if key.to_string().ends_with(".users.events") => {
-                    UsersEventsHandler::handle_message(&pool, envelope).await?
+                    UsersEventsHandler::handle_message(&pool, envelope).await?;
                 }
                 _ => warn!("Unhandled topic: {}", topic),
             }

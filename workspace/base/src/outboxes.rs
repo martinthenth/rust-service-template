@@ -4,6 +4,7 @@ use sea_query::PostgresQueryBuilder;
 use sea_query::Query;
 use sea_query_binder::SqlxBinder;
 use time::OffsetDateTime;
+use time::format_description::well_known::Iso8601;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -37,7 +38,9 @@ impl Outboxes {
         let payload = Envelope {
             id: id.to_string(),
             r#type: params.r#type.to_string().to_snake_case(),
-            timestamp: timestamp.to_string(),
+            timestamp: timestamp
+                .format(&Iso8601::DEFAULT)
+                .map_err(|e| Error::InternalServer(format!("Failed to format timestamp: {}", e)))?,
             payload: params.payload,
         };
         let (sql, values) = Query::insert()
