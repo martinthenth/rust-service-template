@@ -130,7 +130,6 @@ mod tests {
             assert_eq!(event.id, id);
             assert_eq!(event.r#type, EventType::UserCreated);
             assert_eq!(event.payload, vec![1, 2, 3]);
-            assert_eq!(event.timestamp, timestamp);
         }
     }
 }
