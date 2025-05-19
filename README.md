@@ -1,4 +1,6 @@
-# rust-service-template
+# Rust Service Template
+
+<!-- TODO: Review and improve README.md with ChatGPT -->
 
 ## Introduction
 
@@ -12,23 +14,68 @@ This is a Rust Service template that you can copy to implement Microservices. It
 
 ## Installation
 
-1. Install `asdf` with `buf`, `protoc`, `rust`, and `task` plugins
-2. Install `docker`, preferably Docker Desktop
-3. Run `asdf install` to install languages and tools
-4. Run `docker-compose up -d` to start datastores and telemetry
-5. Run `task install` to install Rust tools
-6. Run `task reset` to create and migrate databases
-7. (Optional): Run `./register-debezium.sh` to start Change Data Capture with Kafka
+Pre-requisites:
+
+1. [asdf](https://asdf-vm.com) version manager for languages and tools.
+<!-- TODO: Look up URLs -->
+2. [rust](), [protoc](), [task](), [buf]() plugins for asdf.
+3. [docker](https://www.docker.com) to start containers
+
+Then run:
+
+```zsh
+asdf install
+docker-compose up -d
+task install
+task migrate
+./register-debezium.sh
+```
+
+If you get an error that command `sqlx` cannot be found, run: `asdf reshim`.
 
 ## How to run
 
-- Run `cargo run -p web` to start the Web Server
-- Run `cargo run -p rpc` to start the RPC Server
-- Run `cargo run -p bus` to start the Bus Server
+To start the Web Server:
+
+```zsh
+cargo run -p web
+```
+
+To start the RPC Server:
+
+```zsh
+cargo run -p rpc
+```
+
+To start the Bus Server:
+
+```zsh
+cargo run -p bus
+```
 
 ## Manual testing
 
-- Run `grpcurl -plaintext -import-path ./protos -proto protos/example/users/v1/rpc/users_service.proto '0.0.0.0:50051' example.users.v1.rpc.UsersService/GetUser` from the repository root
+To test the Web Server along with Bus Server:
+
+```zsh
+curl -X POST http://localhost:4000/graph \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "mutation CreateUser($input: CreateUserInput!) { createUser(input: $input) { id firstName lastName createdAt } }",
+    "variables": {
+      "input": {
+        "firstName": "John",
+        "lastName": "Doe"
+      }
+    }
+  }'
+```
+
+To test the RPC Server:
+
+```zsh
+grpcurl -plaintext -import-path ./protos -proto protos/example/users/v1/rpc/users_service.proto '0.0.0.0:50051' example.users.v1.rpc.UsersService/GetUser
+```
 
 ## Continuous integration
 
