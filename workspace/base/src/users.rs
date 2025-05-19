@@ -10,7 +10,7 @@ use crate::database::DbExecutor;
 use crate::error::Error;
 use crate::user::User;
 use crate::user::UsersTable;
-use crate::user_events::UserEvents;
+use crate::user_outboxes::UserOutboxes;
 
 pub mod events {
     include!(concat!(env!("OUT_DIR"), "/example.users.v1.events.rs"));
@@ -84,7 +84,7 @@ impl Users {
         let user = sqlx::query_as_with::<_, User, _>(&sql, values)
             .fetch_one(&mut *tx)
             .await?;
-        let _outbox = UserEvents::create_user_created_event(&mut *tx, &user).await?;
+        let _outbox = UserOutboxes::create_user_created_outbox(&mut *tx, &user).await?;
         tx.commit().await?;
 
         Ok(user)

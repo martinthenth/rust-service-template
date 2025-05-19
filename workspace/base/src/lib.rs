@@ -10,7 +10,7 @@ mod outbox_type;
 mod outboxes;
 mod test;
 pub mod user;
-mod user_events;
+mod user_outboxes;
 pub mod users;
 
 use crate::database::DbExecutor;

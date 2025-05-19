@@ -10,10 +10,10 @@ use crate::user::User;
 use crate::users::events::UserCreated;
 use crate::users::types::User as ProtoUser;
 
-pub struct UserEvents;
+pub struct UserOutboxes;
 
-impl UserEvents {
-    pub async fn create_user_created_event(
+impl UserOutboxes {
+    pub async fn create_user_created_outbox(
         db: impl DbExecutor<'_>,
         user: &User,
     ) -> Result<Outbox, Error> {
@@ -44,7 +44,7 @@ mod tests {
     use crate::Factory;
     use crate::outbox_topic::OutboxTopic;
 
-    mod create_user_created_event {
+    mod create_user_created_outbox {
         use super::*;
         use crate::common::Envelope;
 
@@ -52,7 +52,7 @@ mod tests {
         async fn returns_outbox() {
             let user = User::insert(&mut *conn, User::factory()).await;
 
-            let result = UserEvents::create_user_created_event(&mut *conn, &user)
+            let result = UserOutboxes::create_user_created_outbox(&mut *conn, &user)
                 .await
                 .unwrap();
 
